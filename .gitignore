@@ -8,6 +8,13 @@ node_modules/
 out/
 build/
 
+# env files — excluded from public repo
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.production.local
+
 # uploads / generated images
 public/uploads/
 public/generated/
