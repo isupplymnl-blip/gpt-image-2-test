@@ -1,0 +1,321 @@
+'use client';
+
+import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Handle, NodeProps, Position } from 'reactflow';
+import { StudioContext } from '../../context/StudioContext';
+
+import type { NodeSettings } from '../../context/StudioContext';
+
+interface ModelCreationData {
+  label: string;
+  isLoading?: boolean;
+  imageUrl?: string;
+  error?: string;
+  settings?: NodeSettings;
+}
+
+const STYLES = ['Realistic', 'Editorial', 'Commercial', 'Artistic'];
+
+function detectModelCount(description: string): 1 | 2 | 3 {
+  const lower = description.toLowerCase();
+  if (/\b(three models?|3 models?|three people|3 people|3 persons?|three persons?)\b/.test(lower)) return 3;
+  if (/\b(two models?|2 models?|both models?|model 1\b[\s\S]{0,80}\bmodel 2\b|(male|man|boy)[\s\S]{0,80}(female|woman|girl)|(female|woman|girl)[\s\S]{0,80}(male|man|boy)|first model\b[\s\S]{0,80}\bsecond model\b)\b/.test(lower)) return 2;
+  return 1;
+}
+
+function parseApiTag(text: string): { patch: Partial<NodeSettings>; cleanText: string } | null {
+  const firstLine = text.trimStart().split('\n')[0].trim();
+  const m = /^\[API:\s*([^\]]+)\]/i.exec(firstLine);
+  if (!m) return null;
+  const pairs = m[1];
+  const patch: Partial<NodeSettings> = {};
+
+  const isOpenAITag = /\bopenai\b/i.test(pairs) || /\bmodel=gpt-image/i.test(pairs);
+
+  if (isOpenAITag) {
+    const modelM    = /model=([^\s,\]]+)/i.exec(pairs);     if (modelM)    patch.model = modelM[1];
+    const qualityM  = /quality=([^\s,\]]+)/i.exec(pairs);   if (qualityM)  patch.quality = qualityM[1].toLowerCase() as NodeSettings['quality'];
+    const sizeM     = /size=([^\s,\]]+)/i.exec(pairs);      if (sizeM)     patch.size = sizeM[1].replace(/×/g, 'x');
+    const formatM   = /format=([^\s,\]]+)/i.exec(pairs);    if (formatM)   patch.output_format = formatM[1].toLowerCase() as NodeSettings['output_format'];
+    const bgM       = /background=([^\s,\]]+)/i.exec(pairs); if (bgM)      patch.background = bgM[1].toLowerCase() as NodeSettings['background'];
+    const modM      = /moderation=([^\s,\]]+)/i.exec(pairs); if (modM)     patch.moderation = modM[1].toLowerCase() as NodeSettings['moderation'];
+    const nM        = /\bn=([0-9]+)/i.exec(pairs);          if (nM)        patch.n = parseInt(nM[1], 10);
+    const compressM = /compress=([0-9]+)/i.exec(pairs);     if (compressM) patch.output_compression = parseInt(compressM[1], 10);
+  } else {
+    const modelM = /model=([^\s,\]]+)/i.exec(pairs);
+    if (modelM) {
+      const r = modelM[1].toLowerCase();
+      patch.model = r.includes('pro') ? 'Pro' : r.includes('standard') ? 'Standard' : 'Flash';
+    }
+    const tempM  = /temp=([0-9.]+)/i.exec(pairs);     if (tempM)  patch.temperature = parseFloat(tempM[1]);
+    const topPM  = /topP=([0-9.]+)/i.exec(pairs);     if (topPM)  patch.topP        = parseFloat(topPM[1]);
+    const topKM  = /topK=([0-9]+)/i.exec(pairs);      if (topKM)  patch.topK        = parseInt(topKM[1], 10);
+    const seedM  = /seed=([0-9]+)/i.exec(pairs);      if (seedM)  patch.seed        = parseInt(seedM[1], 10);
+    const ratioM = /ratio=([^\s,\]]+)/i.exec(pairs);  if (ratioM) patch.aspectRatio = ratioM[1];
+  }
+
+  if (!Object.keys(patch).length) return null;
+  const cleanText = text.replace(/^\[API:[^\]]+\]\s*\n?/i, '');
+  return { patch, cleanText };
+}
+
+export default function ModelCreationNode({ id, data }: NodeProps<ModelCreationData>) {
+  const { onCreateModel, onUpdateSettings, onSelectNode, onAddToLibrary, onDeleteNode, activeProvider } = useContext(StudioContext);
+  const [description, setDescription] = useState(() =>
+    typeof (data as unknown as Record<string, unknown>).description === 'string'
+      ? (data as unknown as Record<string, unknown>).description as string
+      : ''
+  );
+  const [lastDescription, setLastDescription] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const autoDetectRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const tagStrippedRef = useRef(false);
+
+  useLayoutEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }, [description]);
+
+  // Auto-detect [API:] tag
+  useEffect(() => {
+    clearTimeout(autoDetectRef.current);
+    autoDetectRef.current = setTimeout(() => {
+      if (!description.trim()) return;
+      if (tagStrippedRef.current) { tagStrippedRef.current = false; return; }
+      const tagResult = parseApiTag(description);
+      if (tagResult) {
+        onUpdateSettings(id, tagResult.patch);
+        tagStrippedRef.current = true;
+        setDescription(tagResult.cleanText);
+      }
+    }, 500);
+    return () => clearTimeout(autoDetectRef.current);
+  }, [description, id, onUpdateSettings]);
+
+  const settings = data.settings ?? {};
+  const { isLoading, imageUrl, error } = data;
+
+  const modelCount = detectModelCount(description || lastDescription);
+  const aspectBadge = modelCount >= 2 ? '21:9 · Full Profiles' : '16:9 · Full Profile';
+  const panelHint = modelCount === 3
+    ? 'Model 1 · Model 2 · Model 3 — full-body portraits together'
+    : modelCount === 2
+    ? 'Model 1 · Model 2 — full-body portraits side by side'
+    : 'Single model — full-body portrait';
+
+  const handleGenerate = useCallback(async () => {
+    if (!description.trim() || isLoading) return;
+    setLastDescription(description.trim());
+    await onCreateModel(id, description.trim(), settings);
+  }, [description, isLoading, id, settings, onCreateModel]);
+
+  const handleRegen = useCallback(async () => {
+    if (!lastDescription || isLoading) return;
+    await onCreateModel(id, lastDescription, settings);
+  }, [lastDescription, isLoading, id, settings, onCreateModel]);
+
+  const canRegen = Boolean(lastDescription) && !isLoading;
+
+  return (
+    <div
+      onClick={() => onSelectNode(id, 'modelCreationNode')}
+      style={{
+        width: 320,
+        background: 'var(--studio-elevated)',
+        border: `1px solid ${imageUrl ? '#F43F5E44' : 'var(--studio-border)'}`,
+        borderRadius: 12,
+        padding: 14,
+        boxShadow: imageUrl ? '0 0 0 1px #F43F5E22, 0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(0,0,0,0.4)',
+        cursor: 'default',
+        transition: 'border-color 0.3s',
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
+        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F43F5E', boxShadow: '0 0 5px #F43F5E', animation: isLoading ? 'pulse 1s infinite' : 'none' }} />
+        <span style={{ color: 'var(--studio-text)', fontWeight: 600, fontSize: 12 }}>Model Creation</span>
+        <span style={{ fontSize: 9, color: '#F43F5E', background: '#F43F5E18', padding: '2px 7px', borderRadius: 20, border: '1px solid #F43F5E33' }}>{aspectBadge}</span>
+
+        {/* Delete button */}
+        <button
+          className="nodrag"
+          title="Remove node"
+          onClick={e => { e.stopPropagation(); onDeleteNode(id); }}
+          style={{
+            marginLeft: 'auto',
+            width: 20, height: 20, borderRadius: 5,
+            border: '1px solid var(--studio-border)', background: 'var(--studio-surface)', color: 'var(--studio-text-muted)',
+            cursor: 'pointer', fontSize: 12,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            lineHeight: 1, padding: 0,
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#F43F5E'; e.currentTarget.style.borderColor = '#F43F5E44'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = 'var(--studio-text-muted)'; e.currentTarget.style.borderColor = 'var(--studio-border)'; }}
+        >×</button>
+      </div>
+
+      {/* Description */}
+      <label style={{ color: 'var(--studio-text-muted)', fontSize: 10, display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Model Description</label>
+      <textarea ref={textareaRef} value={description} onChange={e => setDescription(e.target.value)}
+        placeholder="Filipina fashion model, 25-30 years old, professional appearance, wearing iSupply earbuds..."
+        style={{ width: '100%', background: 'var(--studio-surface)', border: '1px solid var(--studio-border)', borderRadius: 7, padding: '6px 9px', color: 'var(--studio-text)', fontSize: 11, resize: 'none', outline: 'none', lineHeight: 1.6, marginBottom: 9, boxSizing: 'border-box', fontFamily: 'inherit', minHeight: 66, overflow: 'hidden' }}
+      />
+
+      {/* Style chips */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 9, flexWrap: 'wrap' }}>
+        {STYLES.map(s => (
+          <span key={s}
+            className="nodrag"
+            style={{ fontSize: 10, padding: '3px 8px', borderRadius: 20, background: settings.style === s ? '#F43F5E' : 'var(--studio-surface)', color: settings.style === s ? '#fff' : 'var(--studio-text-muted)', border: `1px solid ${settings.style === s ? '#F43F5E' : 'var(--studio-border)'}`, cursor: 'pointer' }}
+            onClick={e => { e.stopPropagation(); onUpdateSettings(id, { style: s }); }}
+          >{s}</span>
+        ))}
+      </div>
+
+      {/* Generated image */}
+      <div style={{ width: '100%', aspectRatio: modelCount >= 2 ? '21/9' : '16/9', borderRadius: 7, overflow: 'hidden', background: 'var(--studio-surface)', marginBottom: 10, position: 'relative', border: '1px solid var(--studio-border)' }}>
+        {isLoading && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <div style={{ width: '70%', height: 3, borderRadius: 2, background: 'linear-gradient(90deg, #1A1A1F 25%, #F43F5E 50%, #1A1A1F 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.2s ease-in-out infinite' }} />
+            <p style={{ color: 'var(--studio-text-muted)', fontSize: 11 }}>Creating model composite…</p>
+          </div>
+        )}
+        {!isLoading && error && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            <span style={{ fontSize: 18 }}>⚠️</span>
+            <p style={{ color: '#F43F5E', fontSize: 11, textAlign: 'center', padding: '0 12px' }}>{error}</p>
+          </div>
+        )}
+        {!isLoading && !error && imageUrl && (
+          <>
+            <img src={imageUrl} alt="Model composite" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            <button
+              onClick={e => { e.stopPropagation(); onAddToLibrary({ url: imageUrl, prompt: lastDescription || description, nodeId: id, createdAt: new Date().toISOString() }); }}
+              title="Save to Image Library"
+              style={{ position: 'absolute', top: 5, right: 5, width: 22, height: 22, borderRadius: 5, border: 'none', background: '#111113cc', color: 'var(--studio-text-sec)', cursor: 'pointer', fontSize: 11 }}
+            >⊕</button>
+          </>
+        )}
+        {!isLoading && !error && !imageUrl && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+            <span style={{ fontSize: 24, opacity: 0.25 }}>👤</span>
+            <p style={{ color: 'var(--studio-text-muted)', fontSize: 11 }}>{aspectBadge} appears here</p>
+            <p style={{ color: 'var(--studio-text-muted)', fontSize: 10 }}>{panelHint}</p>
+          </div>
+        )}
+      </div>
+
+      {/* EccoAPI inline controls */}
+      {activeProvider === 'ecco' && (
+        <div style={{ background: 'var(--studio-surface)', border: '1px solid var(--studio-border)', borderRadius: 7, padding: '7px 9px', marginBottom: 9 }}>
+          <p style={{ fontSize: 9, color: 'var(--studio-text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>EccoAPI Settings</p>
+          <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
+            {(['nanobanana31', 'nanobananapro'] as const).map(m => {
+              const active = (data.settings?.eccoModel ?? 'nanobananapro') === m;
+              return (
+                <button key={m} className="nodrag" onClick={e => { e.stopPropagation(); onUpdateSettings(id, { eccoModel: m }); }}
+                  style={{ flex: 1, padding: '3px 0', fontSize: 9, borderRadius: 5, border: `1px solid ${active ? '#F43F5E' : 'var(--studio-border)'}`, background: active ? '#F43F5E' : 'var(--studio-elevated)', color: active ? '#fff' : 'var(--studio-text-sec)', cursor: 'pointer' }}>
+                  {m === 'nanobanana31' ? 'NB 3.1' : 'NB Pro'}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {(['1K', '2K', '4K'] as const).map(s => {
+              const active = (data.settings?.imageSize ?? '1K') === s;
+              return (
+                <button key={s} className="nodrag" onClick={e => { e.stopPropagation(); onUpdateSettings(id, { imageSize: s }); }}
+                  style={{ flex: 1, padding: '3px 0', fontSize: 9, borderRadius: 5, border: `1px solid ${active ? '#F43F5E' : 'var(--studio-border)'}`, background: active ? '#F43F5E' : 'var(--studio-elevated)', color: active ? '#fff' : 'var(--studio-text-sec)', cursor: 'pointer' }}>
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* OpenAI inline controls */}
+      {(activeProvider === 'openai' || activeProvider === 'pudding-openai') && (
+        <div style={{ background: 'var(--studio-surface)', border: '1px solid var(--studio-border)', borderRadius: 7, padding: '7px 9px', marginBottom: 9 }}>
+          <p style={{ fontSize: 9, color: 'var(--studio-text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{activeProvider === 'pudding-openai' ? 'Pudding OpenAI' : 'OpenAI'}</p>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {(['1K', '2K', '4K'] as const).map(s => {
+              const active = (data.settings?.imageSize ?? '1K') === s;
+              return (
+                <button key={s} className="nodrag" onClick={e => { e.stopPropagation(); onUpdateSettings(id, { imageSize: s }); }}
+                  style={{ flex: 1, padding: '3px 0', fontSize: 9, borderRadius: 5, border: `1px solid ${active ? '#10B981' : 'var(--studio-border)'}`, background: active ? '#10B981' : 'var(--studio-elevated)', color: active ? '#fff' : 'var(--studio-text-sec)', cursor: 'pointer' }}>
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Gemini inline model selector */}
+      {activeProvider === 'gemini' && (
+        <div style={{ background: 'var(--studio-surface)', border: '1px solid var(--studio-border)', borderRadius: 7, padding: '7px 9px', marginBottom: 9 }}>
+          <p style={{ fontSize: 9, color: 'var(--studio-text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Gemini Model</p>
+          <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
+            {(['Flash', 'Pro', 'Standard'] as const).map(m => {
+              const active = (data.settings?.model ?? 'Flash') === m;
+              return (
+                <button key={m} className="nodrag" onClick={e => { e.stopPropagation(); onUpdateSettings(id, { model: m }); }}
+                  style={{ flex: 1, padding: '3px 0', fontSize: 9, borderRadius: 5, border: `1px solid ${active ? '#0D9488' : 'var(--studio-border)'}`, background: active ? '#0D9488' : 'var(--studio-elevated)', color: active ? '#fff' : 'var(--studio-text-sec)', cursor: 'pointer' }}>
+                  {m}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {(['1K', '2K', '4K'] as const).map(s => {
+              const active = (data.settings?.imageSize ?? '1K') === s;
+              return (
+                <button key={s} className="nodrag" onClick={e => { e.stopPropagation(); onUpdateSettings(id, { imageSize: s }); }}
+                  style={{ flex: 1, padding: '3px 0', fontSize: 9, borderRadius: 5, border: `1px solid ${active ? '#0D9488' : 'var(--studio-border)'}`, background: active ? '#0D9488' : 'var(--studio-elevated)', color: active ? '#fff' : 'var(--studio-text-sec)', cursor: 'pointer' }}>
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Action buttons */}
+      <div style={{ display: 'flex', gap: 5 }}>
+        <button
+          className="nodrag"
+          onClick={e => { e.stopPropagation(); handleRegen(); }}
+          disabled={!canRegen}
+          title="Regenerate with last description"
+          style={{
+            flex: canRegen && error ? 2 : 1,
+            padding: '8px', borderRadius: 7, border: `1px solid ${error && canRegen ? '#F43F5E44' : 'var(--studio-border)'}`,
+            background: 'var(--studio-surface)', color: !canRegen ? 'var(--studio-text-muted)' : error ? '#F43F5E' : 'var(--studio-text-sec)',
+            cursor: !canRegen ? 'not-allowed' : 'pointer', fontSize: 11, fontWeight: 600,
+          }}
+        >
+          ↻ Regen
+        </button>
+        <button
+          className="nodrag"
+          onClick={e => { e.stopPropagation(); handleGenerate(); }}
+          disabled={!description.trim() || Boolean(isLoading)}
+          style={{
+            flex: error && canRegen ? 1 : 2,
+            padding: '8px', borderRadius: 7, border: 'none',
+            cursor: !description.trim() || isLoading ? 'not-allowed' : 'pointer',
+            background: !description.trim() || isLoading ? 'var(--studio-border)' : 'linear-gradient(135deg, #F43F5E, #7C3AED)',
+            color: !description.trim() || isLoading ? 'var(--studio-text-muted)' : '#fff',
+            fontSize: 11, fontWeight: 700,
+          }}>
+          {isLoading ? 'Generating…' : '✦ Create'}
+        </button>
+      </div>
+      <Handle type="source" position={Position.Right}
+        style={{ width: 10, height: 10, background: "#F43F5E", border: "2px solid var(--studio-elevated)", boxShadow: "0 0 6px #F43F5E" }} />
+    </div>
+  );
+}

@@ -1,0 +1,655 @@
+---
+name: nano-banana-creator
+description: >
+  Use this skill to create cinematic, photorealistic AI-generated images using Google's Nano Banana
+  (Gemini native image generation) API. This is a multi-agent prompt engineering system with 6
+  specialized agents: Concept Creator, Human Model Creator, Background/Setting Creator, Product
+  Accuracy Creator, Supervisor (API compliance), and the Director (master prompt stitcher). Trigger
+  this skill whenever the user wants to generate images of a product with a model, create commercial
+  photography prompts, produce lifestyle content, shoot a scene at a beach/city/studio/nature setting,
+  describe a model holding or using a product, or ask for "nano banana content", "image gen prompt",
+  "photoshoot prompt", "ad campaign image", or any scene involving a human model + product + setting.
+  Always use this skill — never just guess a prompt — when a cinematic or commercial image is needed.
+---
+
+# 🍌 Nano Banana Content Creator
+
+A 6-agent system for generating maximally optimized Nano Banana (Gemini native image) prompts and API calls. Each agent has a specialized role. The **Director** is the orchestrator who runs all agents and assembles the final master prompt + API configuration.
+
+---
+
+## The 6 Agents
+
+### Agent 1 — Concept Creator
+**Role:** Interpret the user's scene idea and expand it into a full creative brief. COMMIT to a bold, specific aesthetic direction — generic outputs are banned.
+
+**Read `references/agent-intelligence.md` → "From: Frontend Design Skill" and "From: Grill Me" sections.**
+
+Responsibilities:
+- If the user's request is vague (fewer than 3 specific details): run the **Pre-Shoot Brief** from the intelligence file — ask ONE question at a time with a recommended answer
+- If a `brand-context.md` file exists: read it FIRST before asking anything
+- COMMIT to one Aesthetic Direction (Editorial/Vogue, Lifestyle/Candid, Luxury/Aspirational, Campaign/Bold, Earthy/Organic, Clean/Clinical, Street/Urban) — justify in 2 sentences
+- Run the Anti-Generic Checklist — no default poses, no vague lighting, no generic settings
+- Define mood, lighting style, time of day, color palette, narrative arc, shot type
+- Output: **Creative Brief** (chosen aesthetic + justification, mood, shot type, palette, narrative arc)
+
+---
+
+### Agent 2 — Human Model Creator
+**Role:** Define a photorealistic, anatomically accurate human model.
+
+**Read `references/agent-intelligence.md` → "AGENT 2" section AND "CONTENT FILTER NAVIGATION GUIDE" before proceeding.**
+
+**For any swimwear or minimal-clothing wardrobe:** Apply filter-safe garment taxonomy language (Strategy 3) and pose geometry vocabulary (Strategy 4) from the Content Filter Navigation Guide. Never describe the body wearing the garment — describe the garment's construction only.
+
+Responsibilities:
+- Describe the model in extreme detail: ethnicity, skin tone (use Fitzpatrick scale I–VI + full 3-part skin formula from intelligence file), age range, hair (texture, length, color), eye color, facial structure (jaw, nose, brow), body type
+- ALWAYS include anti-plastic-skin language (see intelligence file) — AI defaults to artificial, smooth skin
+- ALWAYS actively counteract the AI's bias toward light skin — be explicit and detailed with darker skin tones
+- Define outfit: fabric type (not just color), garment name, fit, finish (matte/sheen/texture), accessories
+- Define pose: use pose vocabulary library — be specific about body weight distribution, hand position, gaze angle
+- Define expression: go beyond "smiling" — use the expression vocabulary from the intelligence file
+- Specify product interaction with anatomical precision: which hand, at what height, finger position
+- Use hyper-specific language. NOT "a woman" — use "a 28-year-old Filipina woman, Fitzpatrick III, high cheekbones, almond-shaped dark brown eyes, straight black hair cut in a blunt collarbone-length bob"
+- Output: **Model Block** ready to embed in master prompt
+
+---
+
+### Agent 3 — Background / Setting Creator
+**Role:** Build a photorealistic, world-accurate environment. Supports both single-angle plates and multi-angle composite plates.
+
+**Read `references/agent-intelligence.md` → "AGENT 3" section before proceeding.**
+
+Key principle: **Describe lighting FIRST, then the setting.** Research confirms lighting is the #1 most underutilized element and the #1 differentiator between flat and cinematic images.
+
+Responsibilities:
+- START with the lighting formula: [SOURCE + DIRECTION at X° + QUALITY + COLOR TEMP in K + SHADOW BEHAVIOR]
+- Use the Time-of-Day Lighting Library from the intelligence file — never just say "golden hour"
+- Define the setting category: outdoor natural, outdoor urban, indoor
+- Specify exact environmental details using the precision guides (sand type, water behavior, street surface)
+- Define depth layers with the foreground/midground/background formula
+- Add atmospheric effects: bokeh, haze, sea spray, god rays, mist — these add the "breath" to a scene
+- Ensure setting is 100% consistent with the product (use consistency check from Agent 4)
+- **Audit all slides in the concept** — if more than one camera angle is needed across slides, output a Multi-Angle Composite Setting Block instead of a single plate
+- Output: **Setting Block** (single-angle) OR **Multi-Angle Composite Setting Block** (multiple angles)
+
+---
+
+**Single-angle Setting Block** (one camera direction, one plate):
+```
+[API: temp=0.6, seed=X]
+[LIGHTING: source, direction at X°, quality, color temp in K, shadow behavior]
+[ENVIRONMENT: location type, specific surface details, sky condition, vegetation/architecture]
+[DEPTH LAYERS: foreground — midground — background]
+[ATMOSPHERE: bokeh, haze, particles, mist, lens effects]
+[CAMERA: shot type, lens, aperture — use f/8 or higher for full background depth]
+```
+Stop at camera. Do NOT add quality tags — the node appends them automatically.
+
+---
+
+**Multi-Angle Composite Setting Block** (when the concept has slides at different camera directions):
+
+Agent 3 detects angle mismatches across slides and outputs this format instead:
+
+```
+[API: temp=0.6, seed=X]
+SETTING COMPOSITE — [N] angles · [ratio: 16:9 / 21:9]
+
+Shared across all panels:
+[LIGHTING: single lighting description that applies to all panels — same source, same time of day]
+[ATMOSPHERE: shared atmospheric conditions]
+
+PANEL 1 — [angle label e.g. "Interior looking inward"]
+[CAMERA: shot type, lens, aperture]
+[ENVIRONMENT: what is seen from this specific angle]
+[DEPTH LAYERS: foreground — midground — background for this angle]
+
+PANEL 2 — [angle label e.g. "Interior looking outward through wall gap"]
+[CAMERA: shot type, lens, aperture]
+[ENVIRONMENT: what is seen from this specific angle]
+[DEPTH LAYERS: foreground — midground — background for this angle]
+
+PANEL 3 — [angle label e.g. "Exterior — structure from outside"]
+[CAMERA: shot type, lens, aperture]
+[ENVIRONMENT: what is seen from this specific angle]
+[DEPTH LAYERS: foreground — midground — background for this angle]
+
+PANEL 4 — [angle label e.g. "Detail/overhead — floor or surface texture"]
+[CAMERA: overhead or macro, lens, aperture]
+[ENVIRONMENT: what is seen from this specific angle]
+[DEPTH LAYERS: foreground — midground — background for this angle]
+```
+
+**Panel count and frame ratio:**
+- 2 angles → 2-panel 16:9 (side by side)
+- 3 angles → 3-panel 21:9
+- 4 angles → 4-panel 21:9 (standard — matches ModelCreationNode composite)
+
+**Stop at camera for each panel. Do NOT add quality tags.** The SettingNode appends them automatically.
+
+**Tagging rule for composite:** Label every panel angle clearly so PromptNode auto-matching works. The composite saves to the library with all angle keywords combined (e.g. `interior, inward, outward, exterior, bamboo, nipa hut, beach, morning`). Any slide prompt mentioning those words auto-attaches the composite as a reference — Gemini sees all angles and selects the correct one based on the Master Prompt context.
+
+SettingNode API config: temperature 0.6, fixed seed (saved alongside the composite for reproducibility).
+
+---
+
+### Agent 4 — Product Accuracy Creator
+**Role:** Ensure the product/subject is described with surgical precision. Reference images are the primary accuracy tool — text description is secondary.
+
+**REFERENCE IMAGE FIRST — ALWAYS:**
+Before writing any product description, check: does the user have an actual photo of the product? If yes — that photo must be loaded as an `inlineData` reference image in the API call (see `references/api-reference.md` → "Image Input"). A real product photo sent to Gemini as a reference image beats any text description for rendering accuracy. Text description reinforces what to focus on — the image shows exactly what to render. Both together = maximum accuracy.
+
+The same principle applies to model face references and setting reference photos. If the user has them, load them.
+
+**Reference image call-out rule:** When the Director outputs the Master Prompt, it must include a reference image call-out block above the prompt text listing every reference image that should be loaded for that generation:
+
+```
+REFERENCE IMAGES FOR THIS GENERATION:
+- Product: [filename or UploadNode asset name] → auto-matched by tags: [tag list]
+- Model: [filename or UploadNode asset name] → auto-matched by tags: [tag list]
+- Setting: [SettingNode plate] → connected via canvas edge
+```
+
+This ensures the user knows exactly which references are expected to be present before clicking Generate.
+
+Responsibilities:
+- Define product category: skincare, food/beverage, fashion, tech, wellness, supplement
+- Specify exact visual attributes: shape, size, material (matte glass, frosted plastic, brushed metal), label design (color, font style, placement), logo position, cap/lid type, color of product inside (if visible)
+- Define how the product catches light: specular highlights, reflections, transparency
+- Specify product context: sealed/opened, full/almost-empty, with/without packaging box
+- Cross-check with setting: product must look natural in the environment
+- **For earbuds/tech:** Identify the ONE most visually distinctive feature and make it the focal point — state explicitly what the product does NOT look like to counter AI training bias
+- **Failure mode check:** After writing the product block, ask: "Could this description generate a competing brand instead?" If yes, add stronger negative language
+- Output: **Product Block** + **Reference Image Call-Out** ready to embed in master prompt
+
+---
+
+### Agent 5 — Supervisor (API Compliance + Feature Maximizer)
+**Role:** Ensure the master prompt is API-compliant and all Nano Banana features are maximized.
+
+**Read `references/agent-intelligence.md` → "AGENT 5" section AND `references/api-reference.md` before proceeding.**
+
+Key principle from Google's official docs: **"A narrative, descriptive paragraph will almost always produce a better, more coherent image than a simple list of disconnected words."** The Supervisor enforces this on the Director's master prompt.
+
+Responsibilities:
+- Select the right model (see model selection guide in api-reference.md)
+- Tune ALL parameters in the correct order: Temperature → top_p → top_k (never reverse this)
+- Set seed ALWAYS. Document it. Apply seed strategy from intelligence file.
+- For `gemini-3-pro-image-preview` multi-turn: implement thought signatures (see intelligence file code)
+- Activate Google Search grounding only when real-world accuracy is needed (see decision rules)
+- Run the failure mode checklist from the intelligence file — fix issues before final output
+- Verify the prompt reads as a narrative paragraph, NOT a keyword list
+- Verify lighting is described FIRST in the setting section
+- Verify skin description uses the 3-part formula (tone + texture + light interaction)
+- Output: **API Config Block** + any prompt corrections needed
+
+---
+
+### Agent 6 — The Director 🎬
+**Role:** Master orchestrator. Runs all agents, stitches outputs, delivers the final package.
+
+**Director's Workflow:**
+
+```
+Step 1: Run Agent 1 → Get Creative Brief
+Step 2: Run Agent 2 → Get Model Block
+Step 3: Run Agent 3 → Get Primary Setting Block (primary camera angle)
+Step 4: Run Agent 4 → Get Product Block
+Step 5: Cross-check consistency (Model ↔ Setting ↔ Product)
+Step 6: Run Agent 5 → Get API Config Block
+Step 7: Run Camera Angle Audit (see below — CRITICAL for carousel)
+Step 8: Run Humanizer Pass on all prompts
+Step 9: Prepend [API tag] to every Master Prompt (see rule below)
+Step 10: Stitch and output
+```
+
+**[API Tag Rule] — ALWAYS prepend this as line 1 of every Master Prompt:**
+```
+[API: model=gemini-3.1-flash-image-preview, temp=1.0, topP=0.97, topK=40, seed=42]
+```
+Replace the values with whatever Agent 5 specified for this concept. This tag is read by iSupply AI Studio to auto-fill the node settings panel the moment the user pastes the prompt. The app strips it before sending to Gemini — Gemini never sees it.
+
+- For carousel: same `[API]` tag on line 1 of every slide — seed is the same across all slides
+- For SettingNode: different tag format — `[API: temp=0.6, seed=42]` using the SettingNode-specific values
+
+**Brand Context:** If `brand-context.md` exists → read it before running any agents. If it doesn't → after delivery, suggest the user creates one using the template in `agent-intelligence.md` for consistent future shoots.
+
+**Content Filter Rule (Step 8.5 — between Humanizer Pass and Prepend [API tag]):**
+Before finalizing any master prompt that includes swimwear, minimal clothing, or significant skin exposure — run the Content Filter Checklist from `references/agent-intelligence.md → CONTENT FILTER NAVIGATION GUIDE`:
+- [ ] Publication anchor present in prompt opening
+- [ ] Camera specs precede model description
+- [ ] All garment language uses fashion taxonomy (no body-adjacent adjectives)
+- [ ] All pose language uses geometry/weight-distribution vocabulary
+- [ ] All skin description uses light physics language
+- [ ] Commercial intent signal present
+- [ ] Body-adjacent adjectives removed (sexy, alluring, revealing, sensual, form-fitting for swimwear)
+If any item fails → rewrite that section before delivery.
+
+**Director's Stitching Formula:**
+
+When SettingNode is NOT used (no background plate):
+```
+[SHOT TYPE + CAMERA] + [LIGHTING] + [MODEL DESCRIPTION] + [PRODUCT INTERACTION] +
+[SETTING DESCRIPTION] + [ATMOSPHERE/MOOD] + [STYLE REFERENCE] + [TECHNICAL QUALITY TAGS]
+```
+
+When SettingNode IS used (background plate already generated and connected):
+```
+[SHOT TYPE + CAMERA] + [MODEL DESCRIPTION] + [PRODUCT INTERACTION] +
+[ATMOSPHERE/MOOD] + [STYLE REFERENCE] + [TECHNICAL QUALITY TAGS]
+```
+Setting and lighting are removed from the Master Prompt — the plate image provides visual grounding. The prompt focuses entirely on model + product + interaction.
+
+**Quality Tags the Director always appends:**
+```
+Shot on Hasselblad X2D 100C, 85mm f/1.4, ISO 100, RAW — hyperrealistic editorial photography —
+8K resolution — cinematic depth of field — professional commercial lighting — no distortion —
+anatomically correct — skin texture visible — photojournalistic realism
+```
+
+**Seed Strategy:**
+- Always document the seed used
+- Suggest seed variants (+1, +7, +13) for subtle exploration
+- Suggest temperature variants (±0.1) for mood shifts
+- Suggest top_p variants (0.95 vs 0.99) for diversity range
+
+---
+
+## Director's Output Format
+
+The Director always delivers every section below — in this exact order — with destination labels so the user knows exactly where each piece goes in iSupply AI Studio.
+
+---
+
+### 📋 Creative Brief Summary
+*(Reference only — no paste required. Read this to verify the Director understood your scene before proceeding.)*
+
+One paragraph summary of the aesthetic direction, shot type, mood, and narrative arc.
+
+---
+
+### 🧍 Model Block
+→ **PASTE INTO: ModelCreationNode — Description field**
+
+Copy this paragraph into the Model Description field of a ModelCreationNode on the canvas. Click Create. The node generates a multi-panel composite showing your model from all angles. Save the output to the library — that composite becomes a reference image for your scene generation.
+
+- 1 model described → 4-panel 16:9 composite (Front · 3/4 · Side · Back)
+- 2 models described → 4-panel 21:9 (M1 Front · M1 Back · M2 Front · M2 Back)
+- 3 models described → 6-panel 21:9 (M1F · M1B · M2F · M2B · M3F · M3B)
+
+**Do NOT paste the Model Block into a PromptNode.** The ModelCreationNode builds the composite framing automatically — the Description field only needs the model description itself. After generation, upload the composite as an asset with tags matching your model (e.g. `model, filipina, 26yo, editorial`) so it auto-attaches to future scene generations.
+
+[Full model description paragraph here]
+
+---
+
+### 🏖️ Setting Block
+→ **PASTE INTO: SettingNode** (single-angle or multi-angle composite mode)
+
+The Director outputs either a single-angle Setting Block or a Multi-Angle Composite Setting Block depending on how many camera directions the concept needs across its slides.
+
+**Single-angle:** Paste into SettingNode in standard mode. Generates one background plate. Connect to all PromptNodes that use the same camera angle.
+
+**Multi-angle composite:** Paste into SettingNode in Multi-Angle mode. Select the number of panels (2, 3, or 4). The node generates a composite plate showing the same location from all specified angles in one frame — same logic as ModelCreationNode. Save to library. Connect the composite to ALL PromptNodes for this concept — Gemini sees all angles and selects the correct one based on the Master Prompt context.
+
+**Panel ratios:**
+- 2 angles → 2-panel 16:9
+- 3 angles → 3-panel 21:9
+- 4 angles → 4-panel 21:9
+
+The node automatically appends the quality tail to all modes: `no people — no products — background plate only — photorealistic` — do not add this yourself.
+
+**CRITICAL — angle mismatch is now handled by the composite.** If all angles of a location are in one composite plate, there is no mismatch. The Director only outputs a `⚠️ ANGLE MISMATCH` warning when the concept truly requires a second location entirely (a different place, not just a different camera direction of the same place).
+
+[Single-angle or Multi-Angle Composite Setting Block here]
+
+---
+
+### 📦 Product Block
+→ **TAGS: Upload your product photo to UploadNode with these keywords**
+→ **ALREADY INCLUDED IN: Master Prompt** *(text description — no separate paste needed)*
+
+The Product Block does two jobs:
+
+1. **Text description** — already stitched into the Master Prompt below. No action needed.
+2. **Your actual product photo** — if you have one, upload it to an UploadNode BEFORE generating. Set the asset tags to match the keywords from this block (e.g. `spf, serum, bottle, skincare, frosted glass`). When the Master Prompt mentions those words, the app auto-matches the photo and sends it to Gemini as visual grounding alongside the text.
+
+**Critical:** Real product photo + Agent 4 text description together = two channels of grounding. The image shows Gemini exactly what to render. The text tells it what to focus on. Either alone is weaker than both together.
+
+[Full product description paragraph here]
+
+---
+
+### 🎬 Master Prompt
+→ **PASTE INTO: PromptNode** (single image) or **CarouselPromptNode → each slide** (carousel)
+
+This is the primary paste destination. iSupply AI Studio forwards this prompt to Gemini exactly as written — no modification. Paste it clean.
+
+**NO INDENT RULE — CRITICAL FOR COPY-PASTE:**
+Master prompts are output as a single continuous block with NO indentation, NO leading spaces, NO bullet points, NO nested structure. Every line starts at column 1. This ensures clean copy-paste into the PromptNode textarea without hidden whitespace or formatting artifacts. Line breaks between major sections (camera, model, product, setting) are allowed — but no indented sub-lines ever.
+
+**REFERENCE IMAGE CALL-OUT — appears above every Master Prompt:**
+Before the prompt text, the Director always outputs which reference images should be connected or auto-matched for that generation. Check these before clicking Generate:
+
+```
+REFERENCE IMAGES:
+- Model composite: [asset name + tags] → auto-matched or connect via edge
+- Product photo: [asset name + tags] → auto-matched by prompt keywords
+- Background plate: [SettingNode output] → connect via canvas edge
+```
+
+**For a single image:** Paste into a PromptNode textarea. Verify reference images are loaded. Click Generate.
+
+**For a carousel:** Each slide is labeled with a plate flag — read it before pasting:
+
+- `[PLATE: PRIMARY]` — paste as-is, the SettingNode plate handles the background. No extra action.
+- `[PLATE: OVERRIDE — inline setting included]` — paste as-is, the setting description is already embedded inside the prompt. Connect the primary SettingNode plate still (it helps with light direction) but the inline description corrects the background angle.
+- `[PLATE: NEW — second SettingNode required]` — generate a second background plate using the second Agent 3 Setting Block provided. Connect that new plate to this slide's PromptNode only.
+
+[Complete stitched master prompt — single block, no indentation, starts at column 1 — here]
+
+---
+
+### ⚙️ API Configuration
+→ **AUTO-FILLED by `[API: ...]` tag** when you paste the Master Prompt
+
+When you paste any Master Prompt into a PromptNode or CarouselPromptNode, the `[API: ...]` tag on line 1 is detected within 500ms. The app parses all values, applies them to the node settings panel instantly, then strips the tag before sending to Gemini. You will see:
+
+`⚡ Auto-filled: temperature, topP, topK, seed, model`
+
+The settings sliders and inputs update in real time — no manual entry needed.
+
+**Model tag → app selector mapping:**
+
+| Tag value | App model selector |
+|---|---|
+| `gemini-3.1-flash-image-preview` | Flash |
+| `gemini-3-pro-image-preview` | Pro |
+| `gemini-2.5-flash-image` | Standard |
+| anything containing `pro` | Pro |
+| anything containing `standard` | Standard |
+| anything else | Flash |
+
+**Manual fallback:** The Paste API Config box in the right sidebar still accepts the old JSON format as a manual override. Scene-keyword presets (beach, studio, urban) fire as lowest priority if no tag and no manual entry is found.
+
+**Note on candidateCount:** The app generates 1 image per OutputNode. `candidateCount` is not used — use the Seed Explorer instead.
+
+---
+
+### 💻 Ready-to-Run Code
+→ **NOT NEEDED in iSupply AI Studio** — the app handles the API call internally.
+
+This section is for users calling the Gemini API directly from their own scripts outside the app. Skip this if you are working in iSupply AI Studio.
+
+[Full JavaScript and Python API call here]
+
+---
+
+### 🌱 Seed Exploration Guide
+→ **REFERENCE: OutputNode Seed Explorer buttons**
+
+After generation completes, the OutputNode displays 5 seed variant buttons:
+`[ Seed N ] [ N+1 ] [ N+2 ] [ N+7 ] [ N+13 ]`
+
+These match the Proven Seed Combinations table. Click any to re-run the same prompt with only the seed changed. Use this guide as reference for what each variant tends to produce in your scene type.
+
+| Seed variant | What typically changes |
+|---|---|
+| Base seed | Anchor — your reference shot |
+| +1 | Minor pose or expression shift |
+| +2 | Hair movement, wind variation |
+| +7 | Background depth, sky change |
+| +13 | Lighting angle shift |
+| +35 | Moderate composition change |
+| +58 | Strong alternative interpretation |
+
+---
+
+## Carousel Output Format
+
+When the user requests a carousel, the Director outputs slides in this exact format. Every slide header includes a plate flag so the user knows exactly what to do before pasting.
+
+```
+CAROUSEL SLIDE 1 — [scene label] [PLATE: PRIMARY]
+[API: model=gemini-3.1-flash-image-preview, temp=1.0, topP=0.97, topK=40, seed=67]
+[Master Prompt for slide 1]
+
+CAROUSEL SLIDE 2 — [scene label] [PLATE: PRIMARY]
+[API: model=gemini-3.1-flash-image-preview, temp=1.0, topP=0.97, topK=40, seed=67]
+[Master Prompt for slide 2]
+
+CAROUSEL SLIDE 3 — [scene label] [PLATE: OVERRIDE — inline setting included]
+[API: model=gemini-3.1-flash-image-preview, temp=1.0, topP=0.97, topK=40, seed=67]
+[Master Prompt for slide 3 — contains embedded SETTING block for the angle shift]
+
+API CONFIG (applies to all slides — enter once in carousel node settings):
+temperature: X.X | top_p: X.XX | top_k: XX | seed: XX | model: [Flash/Pro/Standard]
+```
+
+**If a NEW plate is needed for any slide**, the Director also outputs:
+
+```
+⚠️ SECOND SETTINGNODE REQUIRED — for Slide N
+Paste this into a new SettingNode. Connect its output to Slide N's PromptNode only.
+
+[Second Agent 3 Setting Block here]
+SettingNode API config: temperature 0.6, seed [same seed as concept]
+```
+
+**Carousel rules:**
+- Every slide gets its own `[API: ...]` tag on line 1 — same values, same seed across all slides
+- The old "one API Config block at the end of the carousel" is removed — the tag per slide replaces it
+- Plate flags appear on every slide header — never omit them
+- OVERRIDE slides still receive the primary plate connection — the inline description corrects the angle, the plate assists with light consistency
+- thoughtSignature threading in the app handles character and product consistency between slides automatically
+
+---
+
+## Full Node Workflow (iSupply AI Studio)
+
+The canonical order for a complete commercial shoot:
+
+```
+STEP 1 — Upload product reference photo
+  → UploadNode
+  → Set name + tags matching Agent 4's product keywords
+  → App auto-matches by tag when prompt mentions those words
+
+STEP 2 — Generate model reference sheet  [recommended]
+  → ModelCreationNode
+  → Paste Agent 2's Model Block into Description field
+  → Generate → save to library → upload composite as asset with model tags
+
+STEP 3 — Generate background plate (single or composite)
+  → SettingNode
+  → Paste Agent 3's Setting Block
+  → Single-angle: standard mode, one plate, one camera direction
+  → Multi-angle: select Multi-Angle mode, choose panel count (2/3/4),
+    generates all camera directions of the location in one composite frame
+  → Do NOT include quality tags — the node appends them automatically
+  → Temperature 0.6, fixed seed — saved alongside the plate/composite
+  → Generate → output auto-saves to library with all angle tags combined
+  → Connect SettingNode output to ALL PromptNodes for this concept
+
+STEP 4 — Generate the scene
+  → PromptNode (single) or CarouselPromptNode (multi-slide)
+  → Paste Director's Master Prompt (or carousel slide prompts)
+  → Enter API Config values in right panel (or let auto-detect fill them)
+  → All reference images auto-attach via tag matching
+  → Click Generate
+
+STEP 5 — Explore variants
+  → OutputNode Seed Explorer: try +1, +2, +7, +13
+  → Adjust temperature ±0.1 for mood shifts
+  → Save keepers to library → export or download
+```
+
+---
+
+## Director's Cross-Consistency Checklist
+
+Before finalizing, the Director checks:
+- [ ] Model skin tone is believable in the lighting of the setting
+- [ ] Model outfit is appropriate for the setting (no winter coat at tropical beach)
+- [ ] Product label/material renders correctly in the setting's light
+- [ ] No anatomical errors described (avoid "hand holding product behind her back while facing camera")
+- [ ] Depth of field choice matches shot type
+- [ ] Color temperature of setting matches lighting description
+- [ ] Product size is realistic relative to model's hands
+- [ ] Background is not competing with the product for attention
+
+---
+
+## Director's Camera Angle Audit (Step 7 — CRITICAL for carousel)
+
+**This step runs on every carousel before stitching. It is the most common source of broken slides.**
+
+### The problem it solves
+The SettingNode generates ONE background plate from ONE camera angle. If any slide in the carousel rotates the camera to a fundamentally different angle — facing a different direction, moving from inside to the doorway, looking down instead of forward — the primary plate will not match that slide. Gemini will ignore the plate or produce an inconsistent background.
+
+### How to run the audit
+
+Before writing any Master Prompt, the Director reads every slide description and asks:
+
+> **"Does this slide's camera face the same direction as the primary Setting Block?"**
+
+Specifically check for:
+- **Interior → Doorway/Opening:** Model moves from inside the room TO the wall gap or doorway, camera now faces outward. Primary interior plate won't match.
+- **Interior → Exterior:** Camera shifts from inside the structure to outside it entirely.
+- **Horizontal → Overhead:** Slide is a flat-lay or top-down shot. No wall or background is visible — plate is irrelevant.
+- **Wide → Macro/Close-up:** Tight portrait where the background is fully blurred. Plate is still useful for light direction reference but setting detail is invisible.
+
+### The three flags — tag every slide before writing its prompt
+
+**`[PLATE: PRIMARY]`**
+Camera angle matches the primary SettingNode plate. No action needed. The plate provides the background.
+
+**`[PLATE: OVERRIDE — inline setting included]`**
+Camera angle is different from the primary plate. The Director embeds a brief setting description directly inside this slide's Master Prompt. The user does NOT need a second SettingNode — the inline description handles it.
+
+Use this for slides where the angle shift is moderate (e.g. model moves to doorway but same room, same light).
+
+Format — add this block inside the Master Prompt immediately after the camera/shot line:
+```
+SETTING (angle differs from primary plate — description included):
+[brief inline setting: what the background looks like from this angle,
+what light is doing, what surfaces are visible, depth layers]
+```
+
+**`[PLATE: NEW — second SettingNode required]`**
+Camera angle is completely different — different environment, different lighting direction, entirely different background. The Director outputs a **second Agent 3 Setting Block** for this slide. The user generates a second background plate in a new SettingNode and connects it to this slide's PromptNode only.
+
+Use this when: the slide is in a completely different location, or the lighting direction flips 180°.
+
+### Audit example — Concept 26 "The Nipa Hour"
+
+Primary Setting Block: Interior nipa hut, camera facing inward, light bars crossing walls and floor, daybed visible, ocean glimpse through wall gap in background.
+
+```
+Slide 1 — seated on mat, inside → [PLATE: PRIMARY] ✓
+Slide 2 — lying on daybed, inside → [PLATE: PRIMARY] ✓
+Slide 3 — standing AT wall gap, facing outward → [PLATE: OVERRIDE — inline setting included]
+  Reason: camera now faces the bamboo opening with ocean beyond —
+  the interior walls are behind camera, not in frame.
+  Inline setting: "Interior of nipa hut, camera at the open bamboo 
+  wall gap — bamboo pole frame left and right, Seafoam Green ocean 
+  and Warm Cream morning sky visible through the opening, warm 
+  2800K backlight pouring inward, bamboo poles catching warm rim."
+Slide 4 — close-up portrait, inside → [PLATE: PRIMARY] ✓
+  Note: background fully blurred at f/1.4 — plate provides light direction reference.
+Slide 5 — overhead flat-lay, inside → [PLATE: PRIMARY] ✓
+  Note: overhead angle — plate not visible but light bars from plate
+  are consistent.
+Reel 1 — full figure inside, facing camera → [PLATE: PRIMARY] ✓
+Reel 2 — back to camera at wall gap → [PLATE: OVERRIDE — inline setting included]
+  Reason: same as Slide 3, camera faces the opening.
+```
+
+### Rule for the Director
+
+**Never assume one plate covers all slides.** Read every slide description before writing any prompt. Flag each one. Resolve OVERRIDE slides by embedding the setting inline. Resolve NEW slides by outputting a second Agent 3 block. Then write the prompts.
+
+The flag must appear on the first line of every slide header in the Director's output:
+
+```
+SLIDE 3 — Pure Visual [PLATE: OVERRIDE — inline setting included]
+SLIDE 4 — Close-up Portrait [PLATE: PRIMARY]
+```
+
+---
+
+**User says:** "I want a model at the beach with our SPF serum"
+
+**Director's Master Prompt output example:**
+```
+Editorial fashion photograph, wide to medium shot — golden hour beach, Maldives, 
+white powder sand, crystal-clear turquoise water, shallow waves at ankle depth — 
+a 26-year-old Filipina woman, Fitzpatrick skin type III, luminous dewy skin, 
+high cheekbones, almond eyes, long wavy black hair slightly wind-tousled, 
+wearing a cream linen bikini top and matching high-waisted sarong — she holds 
+a 50ml frosted glass SPF serum bottle in her right hand at mid-chest level, 
+label facing camera, bottle catching warm golden specular highlights — 
+soft directional sunlight from camera-left at 15° above horizon, 
+warm 3200K color temperature, long soft shadows on sand — 
+shallow background bokeh of palm silhouettes and soft ocean haze — 
+no text in image — Shot on Hasselblad X2D 100C, 85mm f/1.4, ISO 100 — 
+hyperrealistic editorial photography — 8K — anatomically correct — 
+cinematic depth of field — professional commercial lighting
+```
+
+**API Config:**
+```json
+{
+  "model": "gemini-3.1-flash-image-preview",
+  "temperature": 1.0,
+  "top_p": 0.97,
+  "top_k": 40,
+  "seed": 42,
+  "candidateCount": 2,
+  "responseModalities": ["TEXT", "IMAGE"]
+}
+```
+
+---
+
+## When to Use Google Search Grounding
+
+Add `{"google_search": {}}` to `tools` when:
+- Setting requires real weather or current conditions (e.g., "rainy NYC street today")
+- Product needs to reference real-world trends (e.g., "trending minimalist packaging")
+- Scene references a real iconic location
+- Magazine or editorial content needs real event references
+
+---
+
+## When to Use Image Search Grounding
+
+Add `{"google_search": {}}` with image intent when:
+- Product visual reference is needed for accuracy
+- Model should reference a specific style archetype
+- Setting references a real, specific place with distinct visual character
+
+---
+
+## Prompt Length Guide
+
+| Scene complexity | Prompt length target |
+|---|---|
+| Simple (1 subject, plain background) | 80–150 words |
+| Medium (model + product + setting) | 150–300 words |
+| Complex (multiple subjects, multi-layer setting) | 300–500 words |
+| Ultra (fashion editorial, magazine-grade) | 500+ words with structured sections |
+
+---
+
+## Reference Files
+
+- `references/agent-intelligence.md` — **READ FIRST.** Research-backed knowledge base for each agent: skin rendering, lighting patterns, material matrix, pose vocabulary, parameter tuning, common failure modes and fixes. This is the primary intelligence source.
+- `references/api-reference.md` — Nano Banana API parameters, models, tools, full code examples
+- `references/prompt-patterns.md` — Scene-by-scene prompt templates and seed exploration tables
+
+**Reading priority:**
+1. Always read `agent-intelligence.md` for your specific agent section before generating
+2. Read `prompt-patterns.md` for the relevant scene type (beach, studio, urban, etc.)
+3. Read `api-reference.md` when finalizing the API config block

@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep *)",
+      "Bash(node -e \"require.resolve\\('tailwindcss'\\)\")",
+      "Bash(rtk ls *)",
+      "WebFetch(domain:ai.google.dev)",
+      "WebFetch(domain:platform.openai.com)",
+      "WebSearch",
+      "WebFetch(domain:developers.openai.com)",
+      "Bash(rtk tsc *)",
+      "Bash(rtk grep *)",
+      "WebFetch(domain:apidog.com)",
+      "WebFetch(domain:www.buildfastwithai.com)",
+      "Bash(node *)",
+      "Bash(rtk git *)",
+      "Bash(git checkout *)",
+      "Bash(rtk find *)",
+      "Bash(dir /s /b \"C:\\\\Users\\\\miuri\\\\Documents\\\\GitHub\\\\nano-banana-studio\\\\app\\\\*.tsx\")",
+      "WebFetch(domain:community.openai.com)",
+      "Bash(RTK_BYPASS=1 rtk grep *)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:html.duckduckgo.com)",
+      "Bash(npm install *)",
+      "Bash(rtk read *)",
+      "Bash(rtk curl *)",
+      "Bash(curl.exe -v -m 5 https://vibecd.cc/)",
+      "Bash(sed -n '1005,1012p' \"C:/Users/miuri/Documents/GitHub/ai studio/gpt-image-2-test/app/page.tsx\")",
+      "Bash(sed -n '1041,1047p' \"C:/Users/miuri/Documents/GitHub/ai studio/gpt-image-2-test/app/page.tsx\")",
+      "Bash(sed -n '1080,1086p' \"C:/Users/miuri/Documents/GitHub/ai studio/gpt-image-2-test/app/page.tsx\")",
+      "Bash(netstat -ano)",
+      "Bash(where pclaude *)",
+      "Bash(grep -iE \"chat/route|chat\\\\\\\\\\\\\\\\route\")",
+      "Bash(rtk wc *)",
+      "Bash(git *)",
+      "WebFetch(domain:www.bing.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(Get-ChildItem -Recurse -Include \"*.tsx\",\"*.ts\" \"C:\\\\Users\\\\miuri\\\\Documents\\\\GitHub\\\\ai studio\\\\gpt-image-2-test\\\\app\")",
+      "Bash(Select-String -Pattern \"generate_node|triggerGenerate|automationEnabled\")",
+      "Bash(Select-Object -First 30 Filename, LineNumber, Line)"
+    ]
+  }
+}

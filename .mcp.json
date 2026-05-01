@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "afd": {
+      "command": "bun",
+      "args": [
+        "run",
+        "src/daemon/server.ts",
+        "--mcp"
+      ]
+    }
+  }
+}
