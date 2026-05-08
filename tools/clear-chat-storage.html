@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Clear Chat Storage</title>
+</head>
+<body>
+  <h1>Clear Chat Storage</h1>
+  <button onclick="clearStorage()">Clear All Chats</button>
+  <p id="result"></p>
+  <script>
+    function clearStorage() {
+      localStorage.removeItem('nbs-chats-v1');
+      document.getElementById('result').textContent = 'Chat storage cleared! Refresh your app.';
+    }
+  </script>
+</body>
+</html>

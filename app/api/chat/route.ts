@@ -55,6 +55,7 @@ interface ClientContext {
 
 interface ClientBody {
   model?: string;
+  upstream?: string;
   messages: IncomingMsg[];
   clientContext?: ClientContext;
 }
@@ -460,7 +461,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { messages, model, clientContext } = body;
+  const { messages, model, upstream: requestedUpstream, clientContext } = body;
   if (!messages || !Array.isArray(messages)) {
     return new Response(
       JSON.stringify({ error: 'messages[] required' }),
@@ -615,17 +616,29 @@ export async function POST(req: NextRequest) {
       ? { ...t, cache_control: { type: 'ephemeral' as const } }
       : t,
   );
-  const payloadBody = JSON.stringify({
+  const buildPayloadBody = (msgs: ApiMessage[]) => JSON.stringify({
     model: resolvedModel,
     max_tokens: enableThinking ? (thinkingBudget + maxOutput) : maxOutput,
     system: systemBlocks,
-    messages: apiMessages,
+    messages: msgs,
     stream: true,
     tools: toolsArr,
     ...(enableThinking ? { thinking: { type: 'enabled', budget_tokens: thinkingBudget } } : {}),
   });
+
+  // Trim oldest messages until payload fits nginx ~1MB limit (keep ≥2 msgs)
+  const MAX_PAYLOAD_BYTES = 900_000;
+  let trimmedMessages = [...apiMessages];
+  let payloadBody = buildPayloadBody(trimmedMessages);
+  while (Buffer.byteLength(payloadBody, 'utf8') > MAX_PAYLOAD_BYTES && trimmedMessages.length > 2) {
+    trimmedMessages.shift();
+    payloadBody = buildPayloadBody(trimmedMessages);
+  }
   const payloadSize = Buffer.byteLength(payloadBody, 'utf8');
-  console.log(`[chat] payload size: ${(payloadSize / 1024).toFixed(1)} KB (${apiMessages.length} msgs, model=${resolvedModel}, thinking=${enableThinking ? thinkingBudget : 0}, cache_markers=${2 + rollingMarkers})`);
+  if (trimmedMessages.length < apiMessages.length) {
+    console.log(`[chat] trimmed history ${apiMessages.length} → ${trimmedMessages.length} msgs to fit payload limit`);
+  }
+  console.log(`[chat] payload size: ${(payloadSize / 1024).toFixed(1)} KB (${trimmedMessages.length} msgs, model=${resolvedModel}, thinking=${enableThinking ? thinkingBudget : 0}, cache_markers=${2 + rollingMarkers})`);
   if (payloadSize > 950_000) {
     console.warn(`[chat] payload ${(payloadSize / 1024).toFixed(1)} KB exceeds typical nginx 1MB limit — RouteAI/vibecd may 413`);
   }
@@ -641,34 +654,87 @@ export async function POST(req: NextRequest) {
     const isPclaudeProxy =
       /\/\/(localhost|127\.0\.0\.1)/i.test(url) && process.env.USE_PCLAUDE_TOKEN_POOL === '1';
     const isVibecd = url.includes('vibecd.cc');
+    const isThirdPartyProxy = !isPclaudeProxy && !url.includes('api.anthropic.com');
     const useToken = isVibecd && vibecdToken ? vibecdToken : token;
 
     const headers: Record<string, string> = {
       'content-type': 'application/json',
       'anthropic-version': '2023-06-01',
-      'anthropic-beta': 'prompt-caching-2024-07-31',
     };
+    if (!isThirdPartyProxy) {
+      // Only send prompt-caching beta header to Anthropic direct / pclaude
+      headers['anthropic-beta'] = 'prompt-caching-2024-07-31';
+    }
     if (!isPclaudeProxy) {
       headers['x-api-key'] = useToken;
       headers.authorization = `Bearer ${useToken}`;
     }
+
+    // Third-party proxies (routeai.cc, vibecd.cc) often reject:
+    //   - system as array-of-blocks (they expect a plain string)
+    //   - cache_control fields on tools/messages
+    //   - thinking content blocks in message history
+    //   - the thinking: {type:'enabled'} parameter
+    // Build a stripped payload for those upstreams.
+    let body = payloadBody;
+    if (isThirdPartyProxy) {
+      const stripped = JSON.parse(payloadBody) as Record<string, unknown>;
+      // system → plain string
+      if (Array.isArray(stripped.system)) {
+        stripped.system = (stripped.system as Array<{text: string}>).map(b => b.text).join('\n\n');
+      }
+      // remove thinking parameter
+      delete stripped.thinking;
+      // strip cache_control from tools
+      if (Array.isArray(stripped.tools)) {
+        stripped.tools = (stripped.tools as Array<Record<string, unknown>>).map(t => {
+          const { cache_control: _cc, ...rest } = t;
+          void _cc;
+          return rest;
+        });
+      }
+      // strip cache_control and thinking blocks from messages
+      if (Array.isArray(stripped.messages)) {
+        stripped.messages = (stripped.messages as Array<{role: string; content: unknown}>).map(msg => {
+          if (!Array.isArray(msg.content)) return msg;
+          const filtered = (msg.content as Array<Record<string, unknown>>)
+            .filter(b => b.type !== 'thinking' && b.type !== 'redacted_thinking')
+            .map(b => {
+              const { cache_control: _cc, ...rest } = b;
+              void _cc;
+              return rest;
+            });
+          return { ...msg, content: filtered.length === 1 && filtered[0].type === 'text'
+            ? (filtered[0] as {text: string}).text
+            : filtered };
+        });
+      }
+      body = JSON.stringify(stripped);
+    }
+
     return fetch(`${url}/v1/messages`, {
       method: 'POST',
       headers,
-      body: payloadBody,
+      body,
       signal: abortCtl.signal,
     });
   };
 
   // Build ordered upstream chain: primary → fallback → fallback2.
   // Skip primary if it's a localhost URL that didn't resolve to a live pclaude port.
+  // If the client pinned an upstream, put that URL first.
   const primaryIsLocal = /^https?:\/\/(localhost|127\.0\.0\.1|\[?::1\]?)/i.test(rawBaseUrl);
   const upstreamChain: string[] = [];
-  if (!(primaryIsLocal && resolvedLocal === null)) {
-    upstreamChain.push(baseUrl);
+
+  if (requestedUpstream === 'priority-claude' && fallbackUrl) {
+    upstreamChain.push(fallbackUrl);
+  } else if (requestedUpstream === 'vibecd' && fallbackUrl2) {
+    upstreamChain.push(fallbackUrl2);
+  } else {
+    if (!(primaryIsLocal && resolvedLocal === null)) upstreamChain.push(baseUrl);
+    if (fallbackUrl && !upstreamChain.includes(fallbackUrl)) upstreamChain.push(fallbackUrl);
+    if (fallbackUrl2 && !upstreamChain.includes(fallbackUrl2)) upstreamChain.push(fallbackUrl2);
   }
-  if (fallbackUrl && !upstreamChain.includes(fallbackUrl)) upstreamChain.push(fallbackUrl);
-  if (fallbackUrl2 && !upstreamChain.includes(fallbackUrl2)) upstreamChain.push(fallbackUrl2);
 
   const BACKOFF_MS = [300];
   const MAX_ATTEMPTS = upstreamChain.length;

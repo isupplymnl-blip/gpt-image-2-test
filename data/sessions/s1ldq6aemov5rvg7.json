@@ -1,0 +1,52 @@
+{
+  "id": "s1ldq6aemov5rvg7",
+  "title": "New conversation",
+  "createdAt": 1778138536183,
+  "updatedAt": 1778138562755,
+  "messages": [
+    {
+      "role": "user",
+      "content": "make me a beach photoshoot"
+    },
+    {
+      "id": "0jc5f609q7c5mov5ry0c",
+      "role": "assistant",
+      "content": "Before we begin, I want to confirm the active provider for this conversation.\n\n**Current provider: Gemini (iSupply AI Studio)**\n\nThis determines how I'll structure prompts and which API parameters I'll use. You can change this anytime using the provider selector in the chat header.\n\nReady to proceed with Gemini (iSupply AI Studio)?",
+      "createdAt": 1778138539500
+    },
+    {
+      "role": "user",
+      "content": "yes"
+    },
+    {
+      "id": "1og74fuvdzpmov5s5y3",
+      "role": "assistant",
+      "content": "Let me check the canvas and any uploaded references before we start.",
+      "createdAt": 1778138549787,
+      "toolUses": [
+        {
+          "id": "toolu_bdrk_019k7kt54wz4965CsG3iUwiB",
+          "name": "list_canvas",
+          "input": {}
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "",
+      "toolResults": [
+        {
+          "tool_use_id": "toolu_bdrk_019k7kt54wz4965CsG3iUwiB",
+          "content": "{\"success\":true,\"data\":[]}",
+          "is_error": false
+        }
+      ]
+    },
+    {
+      "id": "h8jqyo60uqmov5sfyb",
+      "role": "assistant",
+      "content": "Canvas is empty — fresh start. Let's build your beach shoot.\n\n**Gate 1 — Brand DNA**\n\nDo you have a brand context file, or want to proceed without one?\n\nA) Load existing — paste it or point me to the file\nB) Build new — 5-min Q&A to set up your brand DNA\nC) Skip — proceed without brand context\nD) Free type — describe your brand in a few words\nE) Director decides",
+      "createdAt": 1778138562755
+    }
+  ]
+}

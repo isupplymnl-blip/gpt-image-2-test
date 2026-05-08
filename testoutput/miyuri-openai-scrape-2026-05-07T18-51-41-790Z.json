@@ -1,0 +1,20 @@
+{
+  "elapsed_ms": 51448,
+  "http": 200,
+  "response": {
+    "ok": true,
+    "finalImageUrl": null,
+    "preModerationImageUrl": null,
+    "frames": [],
+    "frameCount": 0,
+    "blocked": true,
+    "blockReason": "Your request was rejected by the safety system. If you believe this is an error, contact us at help.openai.com and include the request ID req_a241a72ad6b64ae9ad4c212dedcf3a8d. safety_violations=[sexual].",
+    "endpoint": "/v1/images/generations",
+    "provider": "openai"
+  },
+  "savedLocally": {
+    "finalImage": null,
+    "preModImage": null,
+    "frames": []
+  }
+}

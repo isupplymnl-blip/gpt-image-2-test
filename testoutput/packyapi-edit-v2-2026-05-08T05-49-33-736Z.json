@@ -1,0 +1,16 @@
+{
+  "stamp": "2026-05-08T05-49-33-736Z",
+  "base": "https://www.packyapi.com",
+  "model": "gpt-image-2",
+  "size": "1024x1024",
+  "quality": "low",
+  "input": "C:\\Users\\miuri\\Documents\\GitHub\\ai studio\\gpt-image-2-test\\testoutput\\packyapi-miyuri-2026-05-08T05-43-21-311Z.png",
+  "http": 400,
+  "ct": "application/json; charset=utf-8",
+  "elapsed": 804,
+  "bytes": 189,
+  "bodyHead": "{\"error\":{\"message\":\"Failed to parse multipart form: multipart: NextPart: EOF (request_ori_id: 67a626f8-0c6c-4787-8f49-6bb9a7033c75)\",\"type\":\"invalid_request_error\",\"param\":\"\",\"code\":null}}",
+  "parsedKeys": [
+    "error"
+  ]
+}

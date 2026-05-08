@@ -1,0 +1,53 @@
+{
+  "ok": false,
+  "provider": "ithink",
+  "swarmSize": 5,
+  "elapsedMs": 53039,
+  "successes": 0,
+  "failures": 5,
+  "breakdown": {
+    "promptBlocks": 0,
+    "postGenBlocks": 5,
+    "timeouts": 0,
+    "other": 0
+  },
+  "firstSuccessMs": null,
+  "imageUrl": null,
+  "attempts": [
+    {
+      "i": 4,
+      "http": 500,
+      "elapsedMs": 23658,
+      "status": "post-gen-block",
+      "error": "没有按照预期生成图片，请重新调整提示词后重试（traceid: abf3c6d76c5ead18fc13781bbb161b7f）"
+    },
+    {
+      "i": 1,
+      "http": 500,
+      "elapsedMs": 24114,
+      "status": "post-gen-block",
+      "error": "没有按照预期生成图片，请重新调整提示词后重试（traceid: 7f1f68516d5ead188815781b532c8ae4）"
+    },
+    {
+      "i": 3,
+      "http": 500,
+      "elapsedMs": 46391,
+      "status": "post-gen-block",
+      "error": "没有按照预期生成图片，请重新调整提示词后重试（traceid: 8d8cd016715ead18301f781b834c32f3）"
+    },
+    {
+      "i": 2,
+      "http": 500,
+      "elapsedMs": 47730,
+      "status": "post-gen-block",
+      "error": "没有按照预期生成图片，请重新调整提示词后重试（traceid: eb5a0580725ead18ca21781b7207cd58）"
+    },
+    {
+      "i": 0,
+      "http": 500,
+      "elapsedMs": 53038,
+      "status": "post-gen-block",
+      "error": "没有按照预期生成图片，请重新调整提示词后重试（traceid: aaf983906d5ead182b16781bc9f7db72）"
+    }
+  ]
+}

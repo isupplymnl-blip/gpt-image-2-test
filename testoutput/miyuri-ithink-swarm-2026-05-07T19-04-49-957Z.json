@@ -1,0 +1,88 @@
+{
+  "ok": false,
+  "provider": "ithink",
+  "swarmSize": 10,
+  "elapsedMs": 91078,
+  "successes": 0,
+  "failures": 10,
+  "breakdown": {
+    "promptBlocks": 1,
+    "postGenBlocks": 8,
+    "timeouts": 1,
+    "other": 0
+  },
+  "firstSuccessMs": null,
+  "imageUrl": null,
+  "attempts": [
+    {
+      "i": 1,
+      "http": 500,
+      "elapsedMs": 20743,
+      "status": "post-gen-block",
+      "error": "没有按照预期生成图片，请重新调整提示词后重试（traceid: d1703665ee5dad1878ff761ba58b9f4e）"
+    },
+    {
+      "i": 0,
+      "http": 500,
+      "elapsedMs": 24271,
+      "status": "post-gen-block",
+      "error": "没有按照预期生成图片，请重新调整提示词后重试（traceid: 0d80a867ef5dad18a501771b104280c3）"
+    },
+    {
+      "i": 5,
+      "http": 500,
+      "elapsedMs": 24358,
+      "status": "post-gen-block",
+      "error": "没有按照预期生成图片，请重新调整提示词后重试（traceid: 00f2674bef5dad186201771bf24aa29c）"
+    },
+    {
+      "i": 4,
+      "http": 500,
+      "elapsedMs": 26117,
+      "status": "post-gen-block",
+      "error": "没有按照预期生成图片，请重新调整提示词后重试（traceid: 2ffbdeabef5dad182702771bf4a7397c）"
+    },
+    {
+      "i": 7,
+      "http": 500,
+      "elapsedMs": 26701,
+      "status": "post-gen-block",
+      "error": "没有按照预期生成图片，请重新调整提示词后重试（traceid: 68b26a08f05dad18e002771b1d3ebae0）"
+    },
+    {
+      "i": 6,
+      "http": 500,
+      "elapsedMs": 29618,
+      "status": "post-gen-block",
+      "error": "没有按照预期生成图片，请重新调整提示词后重试（traceid: aec7e3f4ef5dad18b302771b2ce135f0）"
+    },
+    {
+      "i": 9,
+      "http": 500,
+      "elapsedMs": 30021,
+      "status": "post-gen-block",
+      "error": "没有按照预期生成图片，请重新调整提示词后重试（traceid: bde40a09f05dad18e102771ba50fdf70）"
+    },
+    {
+      "i": 8,
+      "http": 500,
+      "elapsedMs": 30619,
+      "status": "post-gen-block",
+      "error": "没有按照预期生成图片，请重新调整提示词后重试（traceid: 20aa57ecf05dad183305771b8771da80）"
+    },
+    {
+      "i": 2,
+      "http": 500,
+      "elapsedMs": 43440,
+      "status": "prompt-block",
+      "error": "提交中含有违反平台政策的内容，请你立即停止或调整你的提交内容（traceid: 8b323036ef5dad181e01771b97feabc1）"
+    },
+    {
+      "i": 3,
+      "http": 524,
+      "elapsedMs": 91075,
+      "status": "timeout",
+      "error": ""
+    }
+  ]
+}

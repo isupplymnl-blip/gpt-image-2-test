@@ -1,0 +1,15 @@
+{
+  "stamp": "2026-05-08T09-13-37-158Z",
+  "base": "https://www.uocode.com",
+  "model": "gpt-image-2",
+  "size": "1024x1024",
+  "quality": "low",
+  "refKind": "b64",
+  "ref": "b64(2411726)",
+  "http": 200,
+  "ct": "application/json",
+  "elapsed": 36964,
+  "bytes": 2221937,
+  "bodyHead": "{\"created\":1778231622,\"data\":[{\"b64_json\":\"iVBORw0KGgoAAAANSUhEUgAABOYAAATmCAIAAAAKnjl9AABcSmNhQlgAAFxKanVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAXCRqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOmUxNzM5YTQ4LTlmMzQtNDA5OS05YWQ1LTY2ZDI3MWM1ZWNiNwAAABLtanVtYgAAAClqdW1kYzJhcwARABCAAACqADibcQNjMnBhLmFzc2VydGlvbnMAAAAJ0Wp1bWIAAAA7anVtZEDLDDK7ikidpwsq1vR/Q2kTYzJwYS5pY29uAAAAABhjMnNongw2D7qC5fEq69UyO2sSDwAAABdiZmRiAGltYWdlL3N2Zyt4bWwAAAAJd2JpZGI8c3ZnIHdpZHRoPSI3MTYiIGhlaWdodD0iNzE2IiB2aWV3Qm94PSIwIDAgNzE2IDcxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTUwOC43NDkgMzE3LjM5OUM1MTYuNzc3IDI4Ny4zMTQgNTA4Ljk5MSAyNTMuODg0IDQ4NS4zODkgMjMwLjI4MkM0NjEuNzg4IDIwNi42ODEgNDI4LjM2IDE5OC44OTUgMzk4LjI3MyAyMDYuOTIzQzM3Ni4yMzEgMTg0LjkyOCAzNDMuMzkgMTc0Ljk1NiAzMTEuMTQ4IDE4M",
+  "saved": "C:\\Users\\miuri\\Documents\\GitHub\\ai studio\\gpt-image-2-test\\testoutput\\uocode-edit-bathroom-2026-05-08T09-13-37-158Z.png"
+}

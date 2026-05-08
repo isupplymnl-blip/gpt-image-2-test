@@ -1,0 +1,30 @@
+{
+  "http": 200,
+  "ct": "text/event-stream; charset=utf-8",
+  "elapsed_start": 56995,
+  "events": [
+    {
+      "n": 2,
+      "type": "error",
+      "seq": 0,
+      "keys": [
+        "error",
+        "sequence_number",
+        "type"
+      ],
+      "preview": "{\"type\":\"error\",\"error\":{\"type\":\"image_generation_user_error\",\"code\":\"moderation_blocked\",\"message\":\"Your request was rejected by the safety system. If you believe this is an error, contact us at help"
+    }
+  ],
+  "frames": [],
+  "final_saved": null,
+  "error": {
+    "type": "image_generation_user_error",
+    "code": "moderation_blocked",
+    "message": "Your request was rejected by the safety system. If you believe this is an error, contact us at help.openai.com and include the request ID req_aeeaf3fee50e4a05bc402325d97c954b. safety_violations=[sexual].",
+    "param": null
+  },
+  "total_elapsed_ms": 56999,
+  "total_lines": 2,
+  "final_captured": false,
+  "frame_count": 0
+}

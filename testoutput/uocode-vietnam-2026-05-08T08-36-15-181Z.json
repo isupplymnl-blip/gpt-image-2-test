@@ -1,0 +1,17 @@
+{
+  "stamp": "2026-05-08T08-36-15-181Z",
+  "base": "https://www.uocode.com",
+  "model": "gpt-image-2",
+  "size": "1024x1024",
+  "quality": "low",
+  "attempts": [
+    {
+      "mode": "non-stream",
+      "http": 200,
+      "ct": "application/json",
+      "elapsed": 41620,
+      "head": "{\"created\":1778229379,\"data\":[{\"b64_json\":\"iVBORw0KGgoAAAANSUhEUgAABOYAAATmCAIAAAAKnjl9AABcRmNhQlgAAFxGanVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAXCBqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOjgwNzBlZmM2LTgwNWMtNGQ1NC04MzU3LWE1MTMwZGFkYTY3ZAAAABLpanVtYgAAAClqdW1kYzJhcwARABCAAACqADibcQNjMnBhLmFzc2VydGlvbnMAAAAJ0Wp1bWIAAAA7anVtZEDLDDK7ikidpwsq1vR/Q2kTYzJwYS5pY29uAAAAABhjMnNoe1Gu+HfFYXwCQ"
+    }
+  ],
+  "saved": "C:\\Users\\miuri\\Documents\\GitHub\\ai studio\\gpt-image-2-test\\testoutput\\uocode-vietnam-2026-05-08T08-36-15-181Z.png"
+}

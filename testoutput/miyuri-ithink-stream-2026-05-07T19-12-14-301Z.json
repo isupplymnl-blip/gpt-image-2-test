@@ -1,0 +1,9 @@
+{
+  "http": 500,
+  "ct": "application/json; charset=utf-8",
+  "events": [],
+  "frames": [],
+  "final": null,
+  "body": "{\"error\":{\"message\":\"没有按照预期生成图片，请重新调整提示词后重试（traceid: 4e09d4d75a5ead18a1ed771bd3c8ef01）\",\"type\":\"new_api_error\",\"param\":\"\",\"code\":\"\\u003cnil\\u003e\"}}",
+  "elapsed_ms": 41772
+}

@@ -3,6 +3,7 @@
 import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Handle, NodeProps, Position } from 'reactflow';
 import { StudioContext } from '../../context/StudioContext';
+import { uploadReferenceImage } from '../../lib/uploadAsset';
 
 import type { NodeSettings } from '../../context/StudioContext';
 
@@ -70,6 +71,30 @@ export default function ModelCreationNode({ id, data }: NodeProps<ModelCreationD
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const autoDetectRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const tagStrippedRef = useRef(false);
+
+  // Upload mode state
+  const [inputMode, setInputMode] = useState<'generate' | 'upload'>('generate');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadedUrl, setUploadedUrl] = useState('');
+  const [uploadedName, setUploadedName] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+
+  const handleFileUpload = useCallback(async (file: File) => {
+    if (!file) return;
+    setIsUploading(true);
+    setUploadError('');
+    const derivedName = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ').trim() || 'model-ref';
+    const result = await uploadReferenceImage(file, derivedName, ['model-ref']);
+    setIsUploading(false);
+    if (result.success && result.url) {
+      setUploadedUrl(result.url);
+      setUploadedName(result.name ?? derivedName);
+      onUpdateSettings(id, { uploadedModelUrl: result.url, uploadedModelName: result.name ?? derivedName });
+    } else {
+      setUploadError(result.error ?? 'Upload failed');
+    }
+  }, [id, onUpdateSettings]);
 
   useLayoutEffect(() => {
     const el = textareaRef.current;
@@ -156,7 +181,24 @@ export default function ModelCreationNode({ id, data }: NodeProps<ModelCreationD
         >×</button>
       </div>
 
+      {/* Mode toggle */}
+      <div className="nodrag" style={{ display: 'flex', gap: 4, marginBottom: 12, background: 'var(--studio-surface)', borderRadius: 7, padding: 3, border: '1px solid var(--studio-border)' }}>
+        {(['generate', 'upload'] as const).map(mode => (
+          <button key={mode}
+            onClick={e => { e.stopPropagation(); setInputMode(mode); }}
+            style={{
+              flex: 1, padding: '4px 0', borderRadius: 5, border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: 600,
+              background: inputMode === mode ? '#F43F5E' : 'transparent',
+              color: inputMode === mode ? '#fff' : 'var(--studio-text-muted)',
+              transition: 'background 0.15s, color 0.15s',
+            }}>
+            {mode === 'generate' ? '✦ Generate' : '⬆ Upload existing'}
+          </button>
+        ))}
+      </div>
+
       {/* Description */}
+      {inputMode === 'generate' && (<>
       <label style={{ color: 'var(--studio-text-muted)', fontSize: 10, display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Model Description</label>
       <textarea ref={textareaRef} value={description} onChange={e => setDescription(e.target.value)}
         placeholder="Filipina fashion model, 25-30 years old, professional appearance, wearing iSupply earbuds..."
@@ -173,9 +215,61 @@ export default function ModelCreationNode({ id, data }: NodeProps<ModelCreationD
           >{s}</span>
         ))}
       </div>
+      </>)}
 
-      {/* Generated image */}
+      {/* Upload mode drop zone */}
+      {inputMode === 'upload' && (
+        <div style={{ marginBottom: 10 }}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,.heic,.heif"
+            style={{ display: 'none' }}
+            className="nodrag"
+            onChange={e => { const f = e.target.files?.[0]; if (f) handleFileUpload(f); e.target.value = ''; }}
+          />
+          <div
+            className="nodrag"
+            onClick={e => { e.stopPropagation(); fileInputRef.current?.click(); }}
+            onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
+            onDrop={e => { e.preventDefault(); e.stopPropagation(); const f = e.dataTransfer.files?.[0]; if (f) handleFileUpload(f); }}
+            style={{
+              border: '2px dashed var(--studio-border)', borderRadius: 7, padding: '16px 10px',
+              textAlign: 'center', cursor: 'pointer', background: 'var(--studio-surface)',
+              transition: 'border-color 0.15s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = '#F43F5E88')}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--studio-border)')}
+          >
+            {isUploading ? (
+              <p style={{ color: 'var(--studio-text-muted)', fontSize: 11 }}>Uploading…</p>
+            ) : (
+              <>
+                <p style={{ color: 'var(--studio-text-muted)', fontSize: 12, marginBottom: 3 }}>⬆ Drop photo here or click to browse</p>
+                <p style={{ color: 'var(--studio-text-muted)', fontSize: 10 }}>JPG, PNG, HEIC supported</p>
+              </>
+            )}
+          </div>
+          {uploadError && <p style={{ color: '#F43F5E', fontSize: 10, marginTop: 5 }}>{uploadError}</p>}
+          {uploadedName && !uploadError && (
+            <p style={{ color: 'var(--studio-text-muted)', fontSize: 10, marginTop: 5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>📎 {uploadedName}</p>
+          )}
+        </div>
+      )}
+
+      {/* Image preview (generate mode: generated image; upload mode: uploaded image) */}
+      {(inputMode === 'generate' || (inputMode === 'upload' && uploadedUrl)) && (
       <div style={{ width: '100%', aspectRatio: modelCount >= 2 ? '21/9' : '16/9', borderRadius: 7, overflow: 'hidden', background: 'var(--studio-surface)', marginBottom: 10, position: 'relative', border: '1px solid var(--studio-border)' }}>
+        {inputMode === 'upload' && uploadedUrl ? (
+          <>
+            <img src={uploadedUrl} alt="Uploaded model reference" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 8px', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 9, color: '#F43F5Ecc' }}>MODEL REF</span>
+              <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.7)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Using this photo as model reference — connect to PromptNode</span>
+            </div>
+          </>
+        ) : (
+          <>
         {isLoading && (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             <div style={{ width: '70%', height: 3, borderRadius: 2, background: 'linear-gradient(90deg, #1A1A1F 25%, #F43F5E 50%, #1A1A1F 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.2s ease-in-out infinite' }} />
@@ -205,7 +299,13 @@ export default function ModelCreationNode({ id, data }: NodeProps<ModelCreationD
             <p style={{ color: 'var(--studio-text-muted)', fontSize: 10 }}>{panelHint}</p>
           </div>
         )}
+          </>
+        )}
       </div>
+      )}
+
+      {/* Provider controls + action buttons — generate mode only */}
+      {inputMode === 'generate' && (<>
 
       {/* EccoAPI inline controls */}
       {activeProvider === 'ecco' && (
@@ -237,9 +337,9 @@ export default function ModelCreationNode({ id, data }: NodeProps<ModelCreationD
       )}
 
       {/* OpenAI inline controls */}
-      {(activeProvider === 'openai' || activeProvider === 'pudding-openai') && (
+      {(activeProvider === 'openai' || activeProvider === 'pudding-openai' || activeProvider === 'ithink-openai' || activeProvider === 'grsai') && (
         <div style={{ background: 'var(--studio-surface)', border: '1px solid var(--studio-border)', borderRadius: 7, padding: '7px 9px', marginBottom: 9 }}>
-          <p style={{ fontSize: 9, color: 'var(--studio-text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{activeProvider === 'pudding-openai' ? 'Pudding OpenAI' : 'OpenAI'}</p>
+          <p style={{ fontSize: 9, color: 'var(--studio-text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{activeProvider === 'pudding-openai' ? 'Pudding OpenAI' : activeProvider === 'ithink-openai' ? 'iThink OpenAI' : activeProvider === 'grsai' ? 'GrsAI OpenAI' : 'OpenAI'}</p>
           <div style={{ display: 'flex', gap: 4 }}>
             {(['1K', '2K', '4K'] as const).map(s => {
               const active = (data.settings?.imageSize ?? '1K') === s;
@@ -314,6 +414,7 @@ export default function ModelCreationNode({ id, data }: NodeProps<ModelCreationD
           {isLoading ? 'Generating…' : '✦ Create'}
         </button>
       </div>
+      </>)}
       <Handle type="source" position={Position.Right}
         style={{ width: 10, height: 10, background: "#F43F5E", border: "2px solid var(--studio-elevated)", boxShadow: "0 0 6px #F43F5E" }} />
     </div>

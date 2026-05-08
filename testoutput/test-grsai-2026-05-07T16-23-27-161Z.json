@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-05-07T16-23-27-161Z",
+  "base": "https://grsaiapi.com",
+  "status": 200,
+  "ok": true,
+  "elapsed_ms": 30413,
+  "request": {
+    "model": "gpt-image-2",
+    "prompt": "A ripe red apple on a wooden table, soft window light, product photography, 85mm, shallow depth of field. Photorealism.",
+    "size": "1024x1024",
+    "quality": "high",
+    "n": 1,
+    "moderation": "low",
+    "output_format": "png"
+  },
+  "headers": {
+    "access-control-allow-credentials": "true",
+    "access-control-allow-headers": "*",
+    "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE, UPDATE",
+    "access-control-allow-origin": "*",
+    "access-control-expose-headers": "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type",
+    "connection": "keep-alive",
+    "content-length": "209",
+    "content-type": "application/json",
+    "date": "Thu, 07 May 2026 16:23:27 GMT",
+    "server": "nginx/1.23.4"
+  },
+  "image_url": "https://file2.aitohumanize.com/file/b4d7c6e5d346441caf83b94a9bf32448.png",
+  "output_file": "test-grsai-2026-05-07T16-23-27-161Z.png",
+  "output_bytes": 1872693
+}

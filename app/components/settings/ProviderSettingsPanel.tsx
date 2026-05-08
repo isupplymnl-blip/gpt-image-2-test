@@ -123,9 +123,9 @@ export default function ProviderSettingsPanel({ open, onClose }: Props) {
                 marginBottom: 10,
               }}
             >
-              {tempProvider === 'gemini' ? '🍌 Nano Banana (Gemini)' : '🤖 GPT-Image-2 (OpenAI)'}
+              {tempProvider === 'gemini' || tempProvider === 'ecco' || tempProvider === 'pudding' ? '🍌 Nano Banana (Gemini)' : tempProvider === 'pudding-openai' ? '🤖 Pudding (OpenAI)' : tempProvider === 'ithink-openai' ? '🤖 iThink (OpenAI)' : tempProvider === 'grsai' ? '🤖 GrsAI (OpenAI)' : '🤖 GPT-Image-2 (OpenAI)'}
             </h4>
-            {tempProvider === 'gemini' ? (
+            {(tempProvider === 'gemini' || tempProvider === 'ecco' || tempProvider === 'pudding') ? (
               <>
                 <p style={{ fontSize: 12, color: 'var(--studio-text-sec)', lineHeight: 1.5, marginBottom: 8 }}>
                   <strong>Best for:</strong> Fast iteration, photorealistic rendering, reference-based generation

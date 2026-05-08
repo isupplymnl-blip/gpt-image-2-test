@@ -1,0 +1,38 @@
+{
+  "id": "iknf04hdmov91l7m",
+  "title": "New conversation",
+  "createdAt": 1778144028322,
+  "updatedAt": 1778144209600,
+  "messages": [
+    {
+      "role": "user",
+      "content": "make me a beach photoshoot"
+    },
+    {
+      "id": "5co11qw20yjmov91utf",
+      "role": "assistant",
+      "content": "Before we begin, I want to confirm the active provider for this conversation.\n\n**Current provider: iThink OpenAI proxy**\n\nThis determines how I'll structure prompts and which API parameters I'll use. You can change this anytime using the provider selector in the chat header.\n\nReady to proceed with iThink OpenAI proxy?",
+      "createdAt": 1778144040771
+    },
+    {
+      "role": "user",
+      "content": "yes"
+    },
+    {
+      "id": "c71qtu1bpv6mov929m1",
+      "role": "assistant",
+      "content": "```json\n{\n  \"question\": \"Where will you use the output?\",\n  \"follow_up\": [\n    { \"label\": \"iSupply AI Studio\", \"description\": \"iSupply AI Studio (this app) — paste targets for ModelCreationNode, SettingNode, UploadNode, PromptNode, CarouselPromptNode\" },\n    { \"label\": \"Direct API\", \"description\": \"Direct API — Ready-to-Run Code blocks (Python with openai SDK)\" },\n    { \"label\": \"Generic\", \"description\": \"Generic — tool-agnostic, just the Master Prompt\" },\n    { \"label\": \"Director decides\", \"description\": \"Director decides — defaults to iSupply AI Studio (this app)\" }\n  ]\n}\n```",
+      "createdAt": 1778144059945
+    },
+    {
+      "role": "user",
+      "content": "iSupply AI Studio (this app) — paste targets for ModelCreationNode, SettingNode, UploadNode, PromptNode, CarouselPromptNode"
+    },
+    {
+      "id": "w36ba0qk4umov95h34",
+      "role": "assistant",
+      "content": "```json\n{\n  \"question\": \"Do you have a brand DNA file, or would you like to build one?\",\n  \"follow_up\": [\n    { \"label\": \"Load existing\", \"description\": \"Load existing — I have a brand-context.md file already\" },\n    { \"label\": \"Build new\", \"description\": \"Build new — run the 5-min Agent 0 Q&A to create my brand DNA\" },\n    { \"label\": \"Skip\", \"description\": \"Skip — proceed without brand context\" },\n    { \"label\": \"Director decides\", \"description\": \"Director decides — pick the best option for me\" }\n  ]\n}\n```",
+      "createdAt": 1778144209600
+    }
+  ]
+}

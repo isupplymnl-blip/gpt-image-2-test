@@ -1,0 +1,18 @@
+{
+  "stamp": "2026-05-08T05-43-21-311Z",
+  "base": "https://www.packyapi.com",
+  "model": "gpt-image-2",
+  "size": "1024x1024",
+  "quality": "low",
+  "http": 200,
+  "ct": "application/json; charset=utf-8",
+  "elapsed": 211575,
+  "bytes": 1936,
+  "bodyHead": "{\"created\":1778219212,\"data\":[{\"revised_prompt\":\"Photorealistic high-fashion luxury Japanese editorial campaign image, square 1024x1024. Commercial nightwear fashion photography with a refined intimate cinematic mood. Dimly lit bedroom interior: near-black wall on the left, warm textured plaster wall on the right, a single warm tungsten bedside lamp camera-right at hip height, 2700K, no flash. Lamp light passes through sheer organza to create a luminous warm silhouette glow, extreme shadow ratio, cinematic deep blacks, visible lamp bokeh orb in the right background. Medium shot, head to knee, 85mm equivalent, f/1.8, Sony A7III look, ISO 1600.\\n\\nSubject: adult Japanese woman, age 20, porcelain skin with warm pink-ivory undertone, Fitzpatrick I, subtle translucent quality at temples and sho",
+  "parsedKeys": [
+    "created",
+    "data"
+  ],
+  "saved": "C:\\Users\\miuri\\Documents\\GitHub\\ai studio\\gpt-image-2-test\\testoutput\\packyapi-miyuri-2026-05-08T05-43-21-311Z.png",
+  "url": "https://external-resources.packyapi.com/images/2026-05-08/8ba8709b-7a5e-4087-97d5-23238bfe6130.png"
+}

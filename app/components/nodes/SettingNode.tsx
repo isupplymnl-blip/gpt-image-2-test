@@ -4,6 +4,7 @@ import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState }
 import { Handle, NodeProps, Position } from 'reactflow';
 import { StudioContext } from '../../context/StudioContext';
 import type { NodeSettings } from '../../context/StudioContext';
+import { uploadReferenceImage } from '../../lib/uploadAsset';
 
 interface SettingNodeData {
   label: string;
@@ -62,6 +63,12 @@ export default function SettingNode({ id, data }: NodeProps<SettingNodeData>) {
   const [lastText, setLastText] = useState('');
   const [collapsed, setCollapsed] = useState(false);
   const [detectedTag, setDetectedTag] = useState(false);
+  const [inputMode, setInputMode] = useState<'generate' | 'upload'>('generate');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadedUrl, setUploadedUrl] = useState(data.settings?.uploadedSettingUrl ?? '');
+  const [uploadedName, setUploadedName] = useState(data.settings?.uploadedSettingName ?? '');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   const textareaRef    = useRef<HTMLTextAreaElement>(null);
   const autoDetectRef  = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const tagStrippedRef = useRef(false);
@@ -99,6 +106,28 @@ export default function SettingNode({ id, data }: NodeProps<SettingNodeData>) {
   const angleCount    = storedAngles.length === 2 ? 2 : storedAngles.length === 3 ? 3 : 4;
   const isComposite   = compositeMode === 'multi-angle';
   const previewRatio  = isComposite && angleCount > 2 ? '21/9' : '16/9';
+
+  const handleUploadFile = useCallback(async (file: File) => {
+    if (!file) return;
+    setIsUploading(true);
+    setUploadError('');
+    const derivedName = file.name.replace(/\.[^.]+$/, '').replace(/[_-]/g, ' ');
+    const result = await uploadReferenceImage(file, derivedName, ['setting-plate']);
+    if (result.success && result.url) {
+      setUploadedUrl(result.url);
+      setUploadedName(result.name ?? derivedName);
+      onUpdateSettings(id, { uploadedSettingUrl: result.url, uploadedSettingName: result.name ?? derivedName });
+    } else {
+      setUploadError(result.error ?? 'Upload failed');
+    }
+    setIsUploading(false);
+  }, [id, onUpdateSettings]);
+
+  const handleFileDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleUploadFile(file);
+  }, [handleUploadFile]);
 
   const handleGenerate = useCallback(async () => {
     if (!text.trim() || isLoading) return;
@@ -179,11 +208,90 @@ export default function SettingNode({ id, data }: NodeProps<SettingNodeData>) {
         >×</button>
       </div>
 
+      {/* Mode toggle — always visible */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+        {(['generate', 'upload'] as const).map(mode => {
+          const active = inputMode === mode;
+          return (
+            <button
+              key={mode}
+              className="nodrag"
+              onClick={e => { e.stopPropagation(); setInputMode(mode); }}
+              style={{
+                flex: 1, padding: '4px 0', fontSize: 9, borderRadius: 5,
+                border: `1px solid ${active ? ACCENT : 'var(--studio-border)'}`,
+                background: active ? ACCENT : 'var(--studio-elevated)',
+                color: active ? '#fff' : 'var(--studio-text-sec)',
+                cursor: 'pointer', fontWeight: active ? 700 : 400,
+              }}
+            >
+              {mode === 'generate' ? 'Generate' : 'Upload existing'}
+            </button>
+          );
+        })}
+      </div>
+
       {collapsed ? (
         <div style={{ fontSize: 11, color: 'var(--studio-text-muted)', fontStyle: 'italic', padding: '4px 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {text.trim() ? text.slice(0, 80) + (text.length > 80 ? '…' : '') : 'Empty setting — expand to edit'}
+          {inputMode === 'upload'
+            ? (uploadedName ? uploadedName : 'No plate uploaded')
+            : (text.trim() ? text.slice(0, 80) + (text.length > 80 ? '…' : '') : 'Empty setting — expand to edit')
+          }
         </div>
-      ) : (<>
+      ) : inputMode === 'upload' ? (<>
+        {/* Drop zone */}
+        <div
+          className="nodrag"
+          onDragOver={e => e.preventDefault()}
+          onDrop={handleFileDrop}
+          onClick={e => { e.stopPropagation(); fileInputRef.current?.click(); }}
+          style={{
+            width: '100%', aspectRatio: previewRatio, borderRadius: 7, overflow: 'hidden',
+            background: 'var(--studio-surface)', marginBottom: 10, position: 'relative',
+            border: `2px dashed ${uploadedUrl ? ACCENT : 'var(--studio-border)'}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+          }}
+        >
+          {uploadedUrl ? (
+            <>
+              <img src={uploadedUrl} alt="Uploaded plate" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              <span style={{
+                position: 'absolute', top: 5, left: 5,
+                fontSize: 8, fontWeight: 700, letterSpacing: '0.08em',
+                background: ACCENT, color: '#fff',
+                padding: '2px 6px', borderRadius: 4,
+              }}>PLATE</span>
+            </>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '0 12px' }}>
+              {isUploading ? (
+                <p style={{ color: ACCENT, fontSize: 11 }}>Uploading…</p>
+              ) : (
+                <>
+                  <span style={{ fontSize: 24, opacity: 0.3 }}>⬆</span>
+                  <p style={{ color: 'var(--studio-text-muted)', fontSize: 11, marginTop: 4 }}>Drop image or click to browse</p>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          onChange={e => { const f = e.target.files?.[0]; if (f) handleUploadFile(f); }}
+        />
+        {uploadError && (
+          <p style={{ fontSize: 10, color: '#F43F5E', marginBottom: 6 }}>{uploadError}</p>
+        )}
+        {uploadedUrl && (
+          <p style={{ fontSize: 9, color: ACCENT, marginBottom: 8, textAlign: 'center' }}>
+            Using this plate as background — connect → to a PromptNode
+          </p>
+        )}
+      </>) : (<>
       {/* Setting Block textarea */}
       <label style={{ color: 'var(--studio-text-muted)', fontSize: 10, display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
         Setting Block
@@ -293,9 +401,9 @@ export default function SettingNode({ id, data }: NodeProps<SettingNodeData>) {
       )}
 
       {/* OpenAI inline controls */}
-      {(activeProvider === 'openai' || activeProvider === 'pudding-openai') && (
+      {(activeProvider === 'openai' || activeProvider === 'pudding-openai' || activeProvider === 'ithink-openai' || activeProvider === 'grsai') && (
         <div style={{ background: 'var(--studio-surface)', border: '1px solid var(--studio-border)', borderRadius: 7, padding: '7px 9px', marginBottom: 9 }}>
-          <p style={{ fontSize: 9, color: 'var(--studio-text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{activeProvider === 'pudding-openai' ? 'Pudding OpenAI' : 'OpenAI'}</p>
+          <p style={{ fontSize: 9, color: 'var(--studio-text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{activeProvider === 'pudding-openai' ? 'Pudding OpenAI' : activeProvider === 'ithink-openai' ? 'iThink OpenAI' : activeProvider === 'grsai' ? 'GrsAI OpenAI' : 'OpenAI'}</p>
           <div style={{ display: 'flex', gap: 4 }}>
             {(['1K', '2K', '4K'] as const).map(s => {
               const active = (data.settings?.imageSize ?? '1K') === s;

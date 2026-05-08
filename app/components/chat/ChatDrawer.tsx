@@ -25,6 +25,8 @@ import type { ConvertingFile } from './AttachmentBar';
 import ChatWindow from './ChatWindow';
 import Composer, { type ComposerHandle } from './Composer';
 import ModelPicker, { DEFAULT_MODEL } from './ModelPicker';
+import LLMUpstreamPicker, { DEFAULT_UPSTREAM } from './LLMUpstreamPicker';
+import type { LLMAdapterId } from '../../lib/llm/types';
 import type { BuildRequest } from './DirectorBlockActions';
 import { parseDirectorOutput } from '../../lib/directorParser';
 import ProviderSelector from '../ProviderSelector';
@@ -98,6 +100,7 @@ export default function ChatDrawer({
   const [pendingImages, setPendingImages] = useState<ImageAttachment[]>([]);
   const [streaming, setStreaming] = useState(false);
   const [model, setModel] = useState<string>(DEFAULT_MODEL);
+  const [upstream, setUpstream] = useState<LLMAdapterId>(DEFAULT_UPSTREAM);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameVal, setRenameVal] = useState('');
   const [hoverChatId, setHoverChatId] = useState<string | null>(null);
@@ -234,6 +237,7 @@ export default function ChatDrawer({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model,
+          upstream,
           messages: toApiMessages(workingMessages),
           clientContext: buildClientContext(),
         }),
@@ -911,6 +915,7 @@ export default function ChatDrawer({
 
               <div className="flex items-center gap-1.5">
                 <ModelPicker value={model} onChange={setModel} />
+                <LLMUpstreamPicker value={upstream} onChange={setUpstream} disabled={streaming} />
                 <div style={{ minWidth: 160 }}>
                   <ProviderSelector
                     value={active?.provider ?? 'gemini'}

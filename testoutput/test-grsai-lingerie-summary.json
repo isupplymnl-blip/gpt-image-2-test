@@ -1,0 +1,47 @@
+{
+  "when": "2026-05-07T16:30:32.370Z",
+  "base": "https://grsaiapi.com",
+  "size": "1024x1280",
+  "results": [
+    {
+      "slide": "slide1-satin-bralette-set",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 29599,
+      "bytes": 1773405,
+      "file": "slide1-satin-bralette-set-2026-05-07T16-26-30-085Z.png"
+    },
+    {
+      "slide": "slide2-lace-overlay-bra-set",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 91748,
+      "bytes": 1738894,
+      "file": "slide2-lace-overlay-bra-set-2026-05-07T16-28-03-815Z.png"
+    },
+    {
+      "slide": "slide3-knit-loungewear",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 51391,
+      "bytes": 1908011,
+      "file": "slide3-knit-loungewear-2026-05-07T16-28-57-472Z.png"
+    },
+    {
+      "slide": "slide4-sports-bralette-set",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 40759,
+      "bytes": 1495764,
+      "file": "slide4-sports-bralette-set-2026-05-07T16-29-40-151Z.png"
+    },
+    {
+      "slide": "slide5-silk-pajama-set",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 48430,
+      "bytes": 1603998,
+      "file": "slide5-silk-pajama-set-2026-05-07T16-30-30-395Z.png"
+    }
+  ]
+}

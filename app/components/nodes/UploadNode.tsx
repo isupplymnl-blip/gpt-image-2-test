@@ -12,14 +12,17 @@ interface Asset {
   tags: string[];
 }
 
+type ReferenceType = 'product' | 'style-ref' | 'model-ref' | 'setting-plate' | 'other';
+
 interface UploadNodeData {
   label: string;
   savedImage?: Asset;
   settings?: Record<string, unknown>;
+  referenceType?: ReferenceType;
 }
 
 export default function UploadNode({ id, data }: NodeProps<UploadNodeData>) {
-  const { onSaveImage, onSelectNode, onDeleteNode, connectingFromId, onStartConnect, onCompleteConnect } = useContext(StudioContext);
+  const { onSaveImage, onSelectNode, onDeleteNode, connectingFromId, onStartConnect, onCompleteConnect, onUpdateSettings } = useContext(StudioContext);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [mode, setMode] = useState<'upload' | 'asset'>('upload');
@@ -34,6 +37,7 @@ export default function UploadNode({ id, data }: NodeProps<UploadNodeData>) {
   const [error, setError] = useState('');
   const [allTags, setAllTags] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [referenceType, setReferenceType] = useState<ReferenceType>((data.settings?.referenceType as ReferenceType) ?? 'product');
 
   // Fetch existing tags for autocomplete
   useEffect(() => {
@@ -204,6 +208,37 @@ export default function UploadNode({ id, data }: NodeProps<UploadNodeData>) {
         >
           ×
         </button>
+      </div>
+
+      {/* Reference Type chips */}
+      <div className="nodrag" style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 10 }}>
+        {(['product', 'style-ref', 'model-ref', 'setting-plate', 'other'] as ReferenceType[]).map(type => {
+          const active = referenceType === type;
+          const label = type === 'product' ? 'Product' : type === 'style-ref' ? 'Style Ref' : type === 'model-ref' ? 'Model Ref' : type === 'setting-plate' ? 'Setting Plate' : 'Other';
+          return (
+            <button
+              key={type}
+              className="nodrag"
+              onClick={e => {
+                e.stopPropagation();
+                setReferenceType(type);
+                onUpdateSettings(id, { referenceType: type } as Parameters<typeof onUpdateSettings>[1]);
+              }}
+              style={{
+                fontSize: 10,
+                padding: '2px 7px',
+                borderRadius: 20,
+                border: `1px solid ${active ? '#0D9488' : 'var(--studio-border)'}`,
+                background: active ? '#0D948818' : 'var(--studio-surface)',
+                color: active ? '#0D9488' : 'var(--studio-text-muted)',
+                cursor: 'pointer',
+                fontWeight: active ? 600 : 400,
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Connecting-mode hint */}

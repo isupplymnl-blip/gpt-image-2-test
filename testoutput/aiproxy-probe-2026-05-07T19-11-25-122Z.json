@@ -1,0 +1,140 @@
+[
+  {
+    "base": "https://api.aiproxy.vip",
+    "tries": [
+      {
+        "path": "/v1/images/generations",
+        "http": 401,
+        "ct": "application/json; charset=utf-8",
+        "elapsed": 689,
+        "snippet": "{\"error\":{\"code\":\"invalid_request\",\"message\":\"无效的令牌 [sk-zV3***hM7] (request id: B202605071911262762465578268d9d6NnruLq4eMaster)\",\"type\":\"new_api_error\"}}",
+        "interesting": true
+      },
+      {
+        "path": "/v1/chat/completions",
+        "http": 401,
+        "ct": "application/json; charset=utf-8",
+        "elapsed": 540,
+        "snippet": "{\"error\":{\"code\":\"invalid_request\",\"message\":\"无效的令牌 [sk-zV3***hM7] (request id: B202605071911268246120318268d9d6gS0SkI5nMaster)\",\"type\":\"new_api_error\"}}",
+        "interesting": true
+      },
+      {
+        "path": "/v1/models",
+        "http": 401,
+        "ct": "application/json; charset=utf-8",
+        "elapsed": 441,
+        "snippet": "{\"error\":{\"code\":\"invalid_request\",\"message\":\"无效的令牌 [sk-zV3***hM7] (request id: B202605071911272751246688268d9d6v6vbh4MsMaster)\",\"type\":\"new_api_error\"}}",
+        "interesting": true
+      }
+    ]
+  },
+  {
+    "base": "https://api.aiproxy.io",
+    "tries": [
+      {
+        "path": "/v1/images/generations",
+        "error": "fetch failed"
+      },
+      {
+        "path": "/v1/chat/completions",
+        "error": "fetch failed"
+      },
+      {
+        "path": "/v1/models",
+        "error": "fetch failed"
+      }
+    ]
+  },
+  {
+    "base": "https://aiproxy.vip",
+    "tries": [
+      {
+        "path": "/v1/images/generations",
+        "http": 405,
+        "ct": "text/html",
+        "elapsed": 711,
+        "snippet": "<html>\r\n<head><title>405 Not Allowed</title></head>\r\n<body>\r\n<center><h1>405 Not Allowed</h1></center>\r\n<hr><center>openresty</center>\r\n</body>\r\n</html>\r\n",
+        "interesting": false
+      },
+      {
+        "path": "/v1/chat/completions",
+        "http": 405,
+        "ct": "text/html",
+        "elapsed": 586,
+        "snippet": "<html>\r\n<head><title>405 Not Allowed</title></head>\r\n<body>\r\n<center><h1>405 Not Allowed</h1></center>\r\n<hr><center>openresty</center>\r\n</body>\r\n</html>\r\n",
+        "interesting": false
+      },
+      {
+        "path": "/v1/models",
+        "http": 436,
+        "ct": "",
+        "elapsed": 468,
+        "snippet": "",
+        "interesting": false
+      }
+    ]
+  },
+  {
+    "base": "https://webstatic.aiproxy.vip",
+    "tries": [
+      {
+        "path": "/v1/images/generations",
+        "http": 401,
+        "ct": "text/html",
+        "elapsed": 140,
+        "snippet": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <link rel=\"icon\" href=\"https://www.cloudflare.co",
+        "interesting": true
+      },
+      {
+        "path": "/v1/chat/completions",
+        "http": 401,
+        "ct": "text/html",
+        "elapsed": 130,
+        "snippet": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <link rel=\"icon\" href=\"https://www.cloudflare.co",
+        "interesting": true
+      },
+      {
+        "path": "/v1/models",
+        "http": 404,
+        "ct": "text/html",
+        "elapsed": 171,
+        "snippet": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <link rel=\"icon\" href=\"https://www.cloudflare.co",
+        "interesting": false
+      }
+    ]
+  },
+  {
+    "base": "https://gpt-image-2.aiproxy.vip",
+    "tries": [
+      {
+        "path": "/v1/images/generations",
+        "error": "fetch failed"
+      },
+      {
+        "path": "/v1/chat/completions",
+        "error": "fetch failed"
+      },
+      {
+        "path": "/v1/models",
+        "error": "fetch failed"
+      }
+    ]
+  },
+  {
+    "base": "https://chatgptproxy.aiproxy.vip",
+    "tries": [
+      {
+        "path": "/v1/images/generations",
+        "error": "fetch failed"
+      },
+      {
+        "path": "/v1/chat/completions",
+        "error": "fetch failed"
+      },
+      {
+        "path": "/v1/models",
+        "error": "fetch failed"
+      }
+    ]
+  }
+]

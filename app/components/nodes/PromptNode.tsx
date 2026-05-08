@@ -356,9 +356,9 @@ export default function PromptNode({ id, data }: NodeProps<PromptNodeData>) {
       )}
 
       {/* OpenAI inline controls */}
-      {(activeProvider === 'openai' || activeProvider === 'pudding-openai') && (
+      {(activeProvider === 'openai' || activeProvider === 'pudding-openai' || activeProvider === 'ithink-openai' || activeProvider === 'grsai') && (
         <div style={{ background: 'var(--studio-surface)', border: '1px solid var(--studio-border)', borderRadius: 7, padding: '7px 9px', marginBottom: 9 }}>
-          <p style={{ fontSize: 9, color: 'var(--studio-text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{activeProvider === 'pudding-openai' ? 'Pudding OpenAI' : 'OpenAI'}</p>
+          <p style={{ fontSize: 9, color: 'var(--studio-text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{activeProvider === 'pudding-openai' ? 'Pudding OpenAI' : activeProvider === 'ithink-openai' ? 'iThink OpenAI' : activeProvider === 'grsai' ? 'GrsAI OpenAI' : 'OpenAI'}</p>
           <div style={{ display: 'flex', gap: 4 }}>
             {(['1K', '2K', '4K'] as const).map(s => {
               const active = (data.settings?.imageSize ?? '1K') === s;

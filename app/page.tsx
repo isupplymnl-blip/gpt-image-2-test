@@ -99,10 +99,10 @@ function StudioCanvas() {
   }, [nodes, edges, saveCurrentBatch]);
 
   // ── Provider & credits state ──────────────────────────────────────────────
-  const [activeProvider, setActiveProvider] = useState<'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai'>('gemini');
+  const [activeProvider, setActiveProvider] = useState<'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai'>('gemini');
   const [eccoCredits, setEccoCredits] = useState<number | null>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const activeProviderRef = useRef<'gemini' | 'ecco' | 'pudding' | 'openai'>('gemini');
+  const activeProviderRef = useRef<'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai'>('gemini');
   activeProviderRef.current = activeProvider;
   const activeBatchIdRef = useRef(activeBatchId);
   activeBatchIdRef.current = activeBatchId;
@@ -133,7 +133,8 @@ function StudioCanvas() {
 
   const toggleProvider = useCallback(() => {
     const cycle: Array<'gemini' | 'ecco' | 'pudding' | 'openai'> = ['gemini', 'openai', 'ecco', 'pudding'];
-    const next = cycle[(cycle.indexOf(activeProvider) + 1) % cycle.length];
+    const idx = cycle.indexOf(activeProvider as 'gemini' | 'ecco' | 'pudding' | 'openai');
+    const next = cycle[(idx >= 0 ? idx + 1 : 1) % cycle.length];
     setActiveProvider(next);
     localStorage.setItem('isupply-provider', next);
   }, [activeProvider]);
@@ -332,7 +333,8 @@ function StudioCanvas() {
   const [selectedNodeId,    setSelectedNodeId]   = useState<string | null>(null);
   const [selectedNodeType,  setSelectedNodeType] = useState<string | null>(null);
   const [connectingFromId,  setConnectingFromId] = useState<string | null>(null);
-  const [modalImageUrl,     setModalImageUrl]    = useState<string | null>(null);
+  const [modalGallery, setModalGallery] = useState<{ items: { url: string; id?: string; name?: string }[]; index: number } | null>(null);
+  const openSingleImage = useCallback((url: string) => setModalGallery({ items: [{ url }], index: 0 }), []);
   const [contextMenu,       setContextMenu]      = useState<{ nodeId: string; x: number; y: number } | null>(null);
   const [isExporting,       setIsExporting]      = useState(false);
   const [leftTab,  setLeftTab]  = useState<'batches' | 'assets' | 'library'>('batches');
@@ -611,6 +613,10 @@ function StudioCanvas() {
       ? '/api/generate-openai'
       : resolvedProvider === 'pudding-openai'
       ? '/api/pudding-openai'
+      : resolvedProvider === 'ithink-openai'
+      ? '/api/ithink-openai'
+      : resolvedProvider === 'grsai'
+      ? '/api/grsai'
       : '/api/generate';
 
     let lastError = '';
@@ -856,6 +862,69 @@ function StudioCanvas() {
     ));
   }, [addGeneratedImage]);
 
+  /** Generic SSE streaming for any OpenAI-compatible endpoint (ithink-openai, grsai, etc.) */
+  const callOpenAICompatibleStream = useCallback(async (
+    endpoint: string,
+    outputNodeIds: string[],
+    body: Record<string, unknown>,
+  ) => {
+    setNodes(nds => nds.map(n =>
+      outputNodeIds.includes(n.id) ? { ...n, data: { ...n.data, isLoading: true, error: undefined } } : n
+    ));
+    const promptText = body.prompt as string;
+    let lastError = '';
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...body, useStreaming: true }),
+      });
+      if (!res.ok || !res.body) throw new Error(`Streaming request failed: ${res.status}`);
+      const reader  = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer    = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split('\n\n');
+        buffer = events.pop() ?? '';
+        for (const block of events) {
+          if (!block.trim()) continue;
+          let eventType = 'message';
+          let eventData = '';
+          for (const line of block.split('\n')) {
+            if (line.startsWith('event: ')) eventType = line.slice(7).trim();
+            if (line.startsWith('data: '))  eventData = line.slice(6).trim();
+          }
+          if (!eventData) continue;
+          const parsed = JSON.parse(eventData) as { imageUrl?: string; error?: string };
+          if (eventType === 'complete' && parsed.imageUrl) {
+            const historyEntry = { prompt: promptText, ts: new Date().toISOString() };
+            setNodes(nds => nds.map(n => {
+              if (outputNodeIds.includes(n.id))
+                return { ...n, data: { ...n.data, isLoading: false, imageUrl: parsed.imageUrl, lastPrompt: promptText, lastSettings: body.settings, error: undefined } };
+              if (body.type === 'slide' && n.id === body.nodeId) {
+                type H = { prompt: string; ts: string };
+                const prev = (n.data as { promptHistory?: H[] }).promptHistory ?? [];
+                return { ...n, data: { ...n.data, promptHistory: [historyEntry, ...prev].slice(0, 10) } };
+              }
+              return n;
+            }));
+            addGeneratedImage({ id: `img-${Date.now()}`, url: parsed.imageUrl, prompt: promptText, nodeId: outputNodeIds[0], createdAt: new Date().toISOString() });
+            return;
+          }
+          if (eventType === 'error') throw new Error(parsed.error ?? 'Streaming generation failed');
+        }
+      }
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : 'Generation failed';
+    }
+    setNodes(nds => nds.map(n =>
+      outputNodeIds.includes(n.id) ? { ...n, data: { ...n.data, isLoading: false, error: lastError, lastPrompt: promptText } } : n
+    ));
+  }, [addGeneratedImage]);
+
   /** SSE streaming variant for the Gemini direct route — mirrors callPuddingGenerateStream */
   const callGeminiGenerateStream = useCallback(async (
     outputNodeIds: string[],
@@ -931,29 +1000,44 @@ function StudioCanvas() {
     return undefined;
   }, [addGeneratedImage]);
 
-  /** Collect reference images (url + name) from connected UploadNodes, SettingNodes, ModelCreationNodes */
-  const getConnectedUploadRefs = useCallback((nodeId: string): Array<{ url: string; name: string }> => {
+  /** Collect reference images (url + name + referenceType) from connected nodes, sorted by role order */
+  const getConnectedUploadRefs = useCallback((nodeId: string): Array<{ url: string; name: string; referenceType: string }> => {
+    const REF_ORDER: Record<string, number> = {
+      'product': 0,
+      'model-ref': 1,
+      'setting-plate': 2,
+      'style-ref': 3,
+      'other': 4,
+    };
+
     const refs = edgesRef.current
       .filter(e => e.target === nodeId)
       .map(e => nodesRef.current.find(n => n.id === e.source))
       .filter(n => n?.type === 'uploadNode' || n?.type === 'settingNode' || n?.type === 'modelCreationNode')
       .map(n => {
         if (n?.type === 'uploadNode') {
-          const saved = (n.data as { savedImage?: { url: string; name: string } })?.savedImage;
-          if (saved?.url) return { url: saved.url, name: saved.name || (n.data as { label?: string })?.label || 'reference' };
+          const saved = (n.data as { savedImage?: { url: string; name: string }; settings?: { referenceType?: string } })?.savedImage;
+          const refType = (n.data as { settings?: { referenceType?: string } })?.settings?.referenceType ?? 'product';
+          if (saved?.url) return { url: saved.url, name: saved.name || (n.data as { label?: string })?.label || 'reference', referenceType: refType };
         }
         if (n?.type === 'settingNode') {
-          const url = (n.data as { imageUrl?: string })?.imageUrl;
-          if (url) return { url, name: (n.data as { label?: string })?.label || 'setting-reference' };
+          const ndata = n.data as { imageUrl?: string; settings?: { uploadedSettingUrl?: string; uploadedSettingName?: string }; label?: string };
+          const url = ndata.settings?.uploadedSettingUrl || ndata.imageUrl;
+          const name = ndata.settings?.uploadedSettingName || ndata.label || 'setting-plate';
+          if (url) return { url, name, referenceType: 'setting-plate' };
         }
         if (n?.type === 'modelCreationNode') {
-          const url = (n.data as { imageUrl?: string })?.imageUrl;
-          if (url) return { url, name: (n.data as { label?: string })?.label || 'model-reference' };
+          const ndata = n.data as { imageUrl?: string; settings?: { uploadedModelUrl?: string; uploadedModelName?: string }; label?: string };
+          const url = ndata.settings?.uploadedModelUrl || ndata.imageUrl;
+          const name = ndata.settings?.uploadedModelName || ndata.label || 'model-reference';
+          if (url) return { url, name, referenceType: 'model-ref' };
         }
         return undefined;
       })
-      .filter((ref): ref is { url: string; name: string } => !!ref);
-    console.log(`[getConnectedUploadRefs] nodeId=${nodeId}, refs:`, refs.map(r => `${r.name}=${r.url.slice(-20)}`));
+      .filter((ref): ref is { url: string; name: string; referenceType: string } => !!ref)
+      .sort((a, b) => (REF_ORDER[a.referenceType] ?? 4) - (REF_ORDER[b.referenceType] ?? 4));
+
+    console.log(`[getConnectedUploadRefs] nodeId=${nodeId}, sorted refs:`, refs.map((r, i) => `Image ${i+1}: ${r.referenceType} — ${r.name}`));
     return refs;
   }, []);
 
@@ -1018,13 +1102,21 @@ function StudioCanvas() {
       await Promise.all(allOutIds.map(outId =>
         callPuddingOpenaiGenerateStream([outId], { prompt, nodeId: promptNodeId, type: 'slide', settings: settings ?? {}, referenceUrls })
       ));
+    } else if (effectiveProvider === 'ithink-openai') {
+      await Promise.all(allOutIds.map(outId =>
+        callOpenAICompatibleStream('/api/ithink-openai', [outId], { prompt, nodeId: promptNodeId, type: 'slide', settings: settings ?? {}, referenceImages })
+      ));
+    } else if (effectiveProvider === 'grsai') {
+      await Promise.all(allOutIds.map(outId =>
+        callOpenAICompatibleStream('/api/grsai', [outId], { prompt, nodeId: promptNodeId, type: 'slide', settings: settings ?? {}, referenceImages })
+      ));
     } else {
       const geminiFn = settings?.useStreaming ? callGeminiGenerateStream : callGenerate;
       await Promise.all(allOutIds.map(outId =>
         geminiFn([outId], { prompt, nodeId: promptNodeId, type: 'slide', settings: settings ?? {}, referenceImages })
       ));
     }
-  }, [callGenerate, callGeminiGenerateStream, callPuddingGenerate, callPuddingGenerateStream, callPuddingOpenaiGenerateStream, callEccoGenerate, getConnectedUploadRefs]);
+  }, [callGenerate, callGeminiGenerateStream, callPuddingGenerate, callPuddingGenerateStream, callPuddingOpenaiGenerateStream, callOpenAICompatibleStream, callEccoGenerate, getConnectedUploadRefs]);
 
   const onRegenerate = useCallback(async (outputNodeId: string, lastPrompt: string, settings?: NodeSettings) => {
     const referenceImages = getConnectedUploadRefs(outputNodeId);
@@ -1053,60 +1145,73 @@ function StudioCanvas() {
       await callGenerate([outputNodeId], { prompt: lastPrompt, nodeId: outputNodeId, type: 'slide', settings: { ...(settings ?? {}), providerOverride: 'openai' }, referenceImages });
     } else if (effectiveProvider === 'pudding-openai') {
       await callPuddingOpenaiGenerateStream([outputNodeId], { prompt: lastPrompt, nodeId: outputNodeId, type: 'slide', settings: settings ?? {}, referenceUrls });
+    } else if (effectiveProvider === 'ithink-openai') {
+      await callOpenAICompatibleStream('/api/ithink-openai', [outputNodeId], { prompt: lastPrompt, nodeId: outputNodeId, type: 'slide', settings: settings ?? {}, referenceImages });
+    } else if (effectiveProvider === 'grsai') {
+      await callOpenAICompatibleStream('/api/grsai', [outputNodeId], { prompt: lastPrompt, nodeId: outputNodeId, type: 'slide', settings: settings ?? {}, referenceImages });
     } else {
       const geminiFn = settings?.useStreaming ? callGeminiGenerateStream : callGenerate;
       await geminiFn([outputNodeId], { prompt: lastPrompt, nodeId: outputNodeId, type: 'slide', settings: settings ?? {}, referenceImages });
     }
-  }, [callGenerate, callGeminiGenerateStream, callPuddingGenerate, callPuddingGenerateStream, callPuddingOpenaiGenerateStream, callEccoGenerate, getConnectedUploadRefs]);
+  }, [callGenerate, callGeminiGenerateStream, callPuddingGenerate, callPuddingGenerateStream, callPuddingOpenaiGenerateStream, callOpenAICompatibleStream, callEccoGenerate, getConnectedUploadRefs]);
 
-  // Sequential generation for carousel nodes (avoids rate-limit errors)
-  // thoughtSignature is threaded slide-to-slide (Gemini only) to keep character/product
-  // identity consistent across the entire carousel.
+  // Carousel generation — parallel for all providers except Gemini direct
+  // (Gemini threads thoughtSignature slide-to-slide for character consistency)
   const onGenerateCarousel = useCallback(async (nodeId: string, slides: CarouselSlide[], settings?: NodeSettings) => {
     const pending = slides.filter(s => s.prompt.trim() && s.outputNodeId);
-    // Collect reference images from UploadNodes connected to this carousel node
     const referenceImages = getConnectedUploadRefs(nodeId);
     const referenceUrls = referenceImages.map(r => r.url);
-    let thoughtSignature: string | undefined;
-    for (const slide of pending) {
-      const effectiveProvider = settings?.providerOverride ?? activeProviderRef.current;
-      if (effectiveProvider === 'ecco') {
-        const model = (settings?.eccoModel as string | undefined) ?? 'nanobanana31';
-        const eccoFn = settings?.useStreaming ? callEccoGenerateStream : callEccoGenerate;
-        await eccoFn(slide.outputNodeId, {
-          prompt: slide.prompt.trim(), nodeId, model,
-          aspectRatio:      settings?.aspectRatio     ?? '4:5',
-          imageSize:        settings?.imageSize       ?? '1K',
-          useGoogleSearch:  settings?.useGoogleSearch ?? false,
-          useImageSearch:   settings?.useImageSearch  ?? false,
-          temperature:      settings?.temperature     ?? 1.0,
-          includeThoughts:  settings?.includeThoughts ?? true,
-          mediaResolution:  settings?.mediaResolution ?? 'media_resolution_high',
-          safetyThreshold:  settings?.safetyThreshold ?? 'BLOCK_MEDIUM_AND_ABOVE',
-          useAsync:         settings?.useStreaming ? false : (settings?.useAsync ?? false),
-          referenceUrls,
-        });
-      } else if (effectiveProvider === 'pudding') {
-        const puddingFn = settings?.useStreaming ? callPuddingGenerateStream : callPuddingGenerate;
-        await puddingFn([slide.outputNodeId], { prompt: slide.prompt.trim(), nodeId, type: 'slide', settings: settings ?? {}, referenceUrls });
-      } else if (effectiveProvider === 'openai') {
-        await callGenerate([slide.outputNodeId], { prompt: slide.prompt.trim(), nodeId, type: 'slide', settings: { ...(settings ?? {}), providerOverride: 'openai' }, referenceImages });
-      } else if (effectiveProvider === 'pudding-openai') {
-        await callPuddingOpenaiGenerateStream([slide.outputNodeId], { prompt: slide.prompt.trim(), nodeId, type: 'slide', settings: settings ?? {}, referenceUrls });
-      } else {
-        // Gemini direct: pass thoughtSignature from the previous slide so the model
-        // maintains its internal character/product anchor across slides.
-        const geminiFn = settings?.useStreaming ? callGeminiGenerateStream : callGenerate;
-        const result = await geminiFn([slide.outputNodeId], {
-          prompt: slide.prompt.trim(), nodeId, type: 'slide',
-          settings: settings ?? {},
-          referenceImages,
-          ...(thoughtSignature ? { thoughtSignature } : {}),
-        });
-        thoughtSignature = result?.thoughtSignature;
+    const effectiveProvider = settings?.providerOverride ?? activeProviderRef.current;
+
+    if (effectiveProvider === 'gemini' || effectiveProvider === 'pudding') {
+      // Sequential — Gemini threads thoughtSignature; Pudding follows same pattern
+      let thoughtSignature: string | undefined;
+      for (const slide of pending) {
+        if (effectiveProvider === 'pudding') {
+          const puddingFn = settings?.useStreaming ? callPuddingGenerateStream : callPuddingGenerate;
+          await puddingFn([slide.outputNodeId], { prompt: slide.prompt.trim(), nodeId, type: 'slide', settings: settings ?? {}, referenceUrls });
+        } else {
+          const geminiFn = settings?.useStreaming ? callGeminiGenerateStream : callGenerate;
+          const result = await geminiFn([slide.outputNodeId], {
+            prompt: slide.prompt.trim(), nodeId, type: 'slide',
+            settings: settings ?? {},
+            referenceImages,
+            ...(thoughtSignature ? { thoughtSignature } : {}),
+          });
+          thoughtSignature = result?.thoughtSignature;
+        }
       }
+    } else {
+      // Parallel for all OpenAI-compatible providers and Ecco
+      await Promise.all(pending.map(slide => {
+        if (effectiveProvider === 'ecco') {
+          const model = (settings?.eccoModel as string | undefined) ?? 'nanobanana31';
+          const eccoFn = settings?.useStreaming ? callEccoGenerateStream : callEccoGenerate;
+          return eccoFn(slide.outputNodeId, {
+            prompt: slide.prompt.trim(), nodeId, model,
+            aspectRatio:      settings?.aspectRatio     ?? '4:5',
+            imageSize:        settings?.imageSize       ?? '1K',
+            useGoogleSearch:  settings?.useGoogleSearch ?? false,
+            useImageSearch:   settings?.useImageSearch  ?? false,
+            temperature:      settings?.temperature     ?? 1.0,
+            includeThoughts:  settings?.includeThoughts ?? true,
+            mediaResolution:  settings?.mediaResolution ?? 'media_resolution_high',
+            safetyThreshold:  settings?.safetyThreshold ?? 'BLOCK_MEDIUM_AND_ABOVE',
+            useAsync:         settings?.useStreaming ? false : (settings?.useAsync ?? false),
+            referenceUrls,
+          });
+        } else if (effectiveProvider === 'openai') {
+          return callGenerate([slide.outputNodeId], { prompt: slide.prompt.trim(), nodeId, type: 'slide', settings: { ...(settings ?? {}), providerOverride: 'openai' }, referenceImages });
+        } else if (effectiveProvider === 'pudding-openai') {
+          return callPuddingOpenaiGenerateStream([slide.outputNodeId], { prompt: slide.prompt.trim(), nodeId, type: 'slide', settings: settings ?? {}, referenceUrls });
+        } else if (effectiveProvider === 'ithink-openai') {
+          return callOpenAICompatibleStream('/api/ithink-openai', [slide.outputNodeId], { prompt: slide.prompt.trim(), nodeId, type: 'slide', settings: settings ?? {}, referenceImages });
+        } else {
+          return callOpenAICompatibleStream('/api/grsai', [slide.outputNodeId], { prompt: slide.prompt.trim(), nodeId, type: 'slide', settings: settings ?? {}, referenceImages });
+        }
+      }));
     }
-  }, [callGenerate, callGeminiGenerateStream, callPuddingGenerate, callPuddingGenerateStream, callPuddingOpenaiGenerateStream, callEccoGenerate, getConnectedUploadRefs]);
+  }, [callGenerate, callGeminiGenerateStream, callPuddingGenerate, callPuddingGenerateStream, callPuddingOpenaiGenerateStream, callOpenAICompatibleStream, callEccoGenerate, callEccoGenerateStream, getConnectedUploadRefs]);
 
   const onUpdateData = useCallback((nodeId: string, data: Record<string, unknown>) => {
     setNodes(nds => nds.map(n =>
@@ -1511,13 +1616,15 @@ function StudioCanvas() {
             )}
             {/* Provider dropdown */}
             {(() => {
-              type ProviderEntry = { value: 'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai'; label: string; short: string; color: string; group: string };
+              type ProviderEntry = { value: 'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai'; label: string; short: string; color: string; group: string };
               const PROVIDERS: ProviderEntry[] = [
                 { value: 'gemini',  label: 'Gemini (Direct)',  short: 'Gemini',  color: '#0D9488', group: 'Gemini' },
                 { value: 'ecco',    label: 'EccoAPI (Gemini)', short: 'EccoAPI', color: '#A78BFA', group: 'Gemini' },
                 { value: 'pudding', label: 'Pudding (Gemini)', short: 'Pudding', color: '#FB923C', group: 'Gemini' },
                 { value: 'openai',  label: 'OpenAI (Direct)',  short: 'OpenAI',  color: '#10B981', group: 'OpenAI' },
                 { value: 'pudding-openai', label: 'Pudding (OpenAI)', short: 'Pudding-AI', color: '#F59E0B', group: 'OpenAI' },
+                { value: 'ithink-openai',  label: 'iThink (OpenAI)',  short: 'iThink-AI',  color: '#06B6D4', group: 'OpenAI' },
+                { value: 'grsai',          label: 'GrsAI (OpenAI)',   short: 'GrsAI',      color: '#8B5CF6', group: 'OpenAI' },
               ];
               const current = PROVIDERS.find(p => p.value === activeProvider) ?? PROVIDERS[0];
               return (
@@ -1719,7 +1826,7 @@ function StudioCanvas() {
                             onMouseLeave={e => (e.currentTarget.style.opacity = '0')}
                             style={{ position: 'absolute', inset: 0, borderRadius: 5, background: 'rgba(10,10,11,0.82)', display: 'flex', gap: 5, alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.15s' }}
                           >
-                            <button onClick={e => { e.stopPropagation(); setModalImageUrl(a.url); }}
+                            <button onClick={e => { e.stopPropagation(); openSingleImage(a.url); }}
                               style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 5, border: 'none', background: 'var(--studio-accent)', color: '#fff', cursor: 'pointer' }}>
                               Open
                             </button>
@@ -1764,7 +1871,16 @@ function StudioCanvas() {
                     );
                     return filtered.map(img => (
                       <div key={img.id}
-                        onClick={() => { setSelectedLibImgId(img.id); setSelectedNodeId(null); setSelectedNodeType(null); setSelectedAssetId(null); }}
+                        onClick={() => {
+                          setSelectedLibImgId(img.id);
+                          setSelectedNodeId(null);
+                          setSelectedNodeType(null);
+                          setSelectedAssetId(null);
+                          setModalGallery({
+                            items: filtered.map(i => ({ url: librarySubTab === 'hosted' && (i as typeof img).supabaseUrl ? (i as typeof img).supabaseUrl! : i.url, id: i.id, name: i.prompt?.slice(0, 40) })),
+                            index: filtered.findIndex(i => i.id === img.id),
+                          });
+                        }}
                         style={{ marginBottom: 8, cursor: 'pointer', borderRadius: 8, border: `1px solid ${selectedLibImgId === img.id ? 'color-mix(in srgb, var(--studio-accent) 53%, transparent)' : 'transparent'}`, padding: 4 }}>
                         <div style={{ position: 'relative' }}>
                           <img src={librarySubTab === 'hosted' && img.supabaseUrl ? img.supabaseUrl : img.url} alt="generated" style={{ width: '100%', borderRadius: 5, display: 'block' }} />
@@ -1776,7 +1892,7 @@ function StudioCanvas() {
                             onMouseLeave={e => (e.currentTarget.style.opacity = '0')}
                             style={{ position: 'absolute', inset: 0, borderRadius: 5, background: 'rgba(10,10,11,0.82)', display: 'flex', gap: 5, alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.15s' }}
                           >
-                            <button onClick={e => { e.stopPropagation(); setModalImageUrl(librarySubTab === 'hosted' && img.supabaseUrl ? img.supabaseUrl : img.url); }}
+                            <button onClick={e => { e.stopPropagation(); openSingleImage(librarySubTab === 'hosted' && img.supabaseUrl ? img.supabaseUrl : img.url); }}
                               style={{ fontSize: 11, fontWeight: 600, padding: '4px 10px', borderRadius: 5, border: 'none', background: 'var(--studio-accent)', color: '#fff', cursor: 'pointer' }}>
                               Open
                             </button>
@@ -1930,7 +2046,7 @@ function StudioCanvas() {
                     </button>
                   </div>
                   <div style={{ display: 'flex', gap: 5 }}>
-                    <button onClick={() => setModalImageUrl(asset.url)}
+                    <button onClick={() => openSingleImage(asset.url)}
                       style={{ flex: 1, padding: '6px', fontSize: 10, fontWeight: 600, borderRadius: 6, border: '1px solid color-mix(in srgb, var(--studio-accent) 27%, transparent)', background: 'color-mix(in srgb, var(--studio-accent) 7%, transparent)', color: 'var(--studio-accent)', cursor: 'pointer' }}>
                       Open Image
                     </button>
@@ -1958,7 +2074,7 @@ function StudioCanvas() {
                     <p style={{ fontSize: 10, color: 'var(--studio-text-muted)' }}>{new Date(img.createdAt).toLocaleString()}</p>
                   </Sec>
                   <div style={{ display: 'flex', gap: 5 }}>
-                    <button onClick={() => setModalImageUrl(img.url)}
+                    <button onClick={() => openSingleImage(img.url)}
                       style={{ flex: 1, padding: '6px', fontSize: 10, fontWeight: 600, borderRadius: 6, border: '1px solid color-mix(in srgb, var(--studio-accent) 27%, transparent)', background: 'color-mix(in srgb, var(--studio-accent) 7%, transparent)', color: 'var(--studio-accent)', cursor: 'pointer' }}>
                       Open Image
                     </button>
@@ -1994,7 +2110,7 @@ function StudioCanvas() {
             {!selectedAssetId && !selectedLibImgId && selectedNodeType === 'promptNode' && (
               <>
                 <SideLabel>Image Prompt Settings</SideLabel>
-                {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai') && <>
+                {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai' && effectiveSidebarProvider !== 'ithink-openai' && effectiveSidebarProvider !== 'grsai') && <>
                 <Sec label="⚡ Paste API Config">
                   <textarea
                     rows={4}
@@ -2069,7 +2185,7 @@ function StudioCanvas() {
                     style={{ width: '100%', background: 'var(--studio-elevated)', border: '1px solid var(--studio-border)', borderRadius: 6, padding: '5px 8px', color: 'var(--studio-text)', fontSize: 11, outline: 'none', resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit', lineHeight: 1.5 }} />
                 </Sec>
                 </>}
-                {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai') ? (
+                {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai' || effectiveSidebarProvider === 'ithink-openai' || effectiveSidebarProvider === 'grsai') ? (
                   <>
                     <Sec label="Model">
                       <Chips opts={['gpt-image-2', 'gpt-image-1']} value={settingsOf.model ?? 'gpt-image-2'} onChange={v => setSetting('model', v)} cols={2} />
@@ -2249,7 +2365,7 @@ function StudioCanvas() {
                     <p style={{ fontSize: 11, color: 'var(--studio-text-sec)' }}>{slides.length} slides · {slides.filter(s => s.prompt.trim()).length} filled</p>
                     <p style={{ fontSize: 10, color: 'var(--studio-text-muted)', marginTop: 4, lineHeight: 1.5 }}>Settings below apply to all slides in this carousel.</p>
                   </Sec>
-                  {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai') && <>
+                  {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai' && effectiveSidebarProvider !== 'ithink-openai' && effectiveSidebarProvider !== 'grsai') && <>
                   <Sec label="⚡ Paste API Config">
                     <textarea
                       rows={4}
@@ -2323,7 +2439,7 @@ function StudioCanvas() {
                       style={{ width: '100%', background: 'var(--studio-elevated)', border: '1px solid var(--studio-border)', borderRadius: 6, padding: '5px 8px', color: 'var(--studio-text)', fontSize: 11, outline: 'none', resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit', lineHeight: 1.5 }} />
                   </Sec>
                   </>}
-                  {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai') ? (
+                  {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai' || effectiveSidebarProvider === 'ithink-openai' || effectiveSidebarProvider === 'grsai') ? (
                     <>
                       <Sec label="Model">
                         <Chips opts={['gpt-image-2', 'gpt-image-1']} value={settingsOf.model ?? 'gpt-image-2'} onChange={v => setSetting('model', v)} cols={2} />
@@ -2491,7 +2607,7 @@ function StudioCanvas() {
                 <Sec label="Output">
                   <p style={{ fontSize: 10, color: 'var(--studio-text-muted)', lineHeight: 1.6 }}>Generates a full-profile portrait — one model in 16:9, two or three models together in 21:9. No angle panels, just complete head-to-toe shots.</p>
                 </Sec>
-                {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai') && <>
+                {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai' && effectiveSidebarProvider !== 'ithink-openai' && effectiveSidebarProvider !== 'grsai') && <>
                 <Sec label={`Temperature — ${(settingsOf.temperature ?? 1.0).toFixed(1)}`}>
                   <SliderRow value={settingsOf.temperature ?? 1.0} min={0} max={2} step={0.05} onChange={v => setSetting('temperature', v)} />
                   <p style={{ fontSize: 9, color: 'var(--studio-text-muted)', marginTop: 4 }}>Google recommends 1.0 for image models</p>
@@ -2525,7 +2641,7 @@ function StudioCanvas() {
                   <p style={{ fontSize: 9, color: 'var(--studio-text-muted)', marginTop: 4 }}>High = more input tokens for reference image details</p>
                 </Sec>
                 </>}
-                {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai') ? (
+                {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai' || effectiveSidebarProvider === 'ithink-openai' || effectiveSidebarProvider === 'grsai') ? (
                   <>
                     <Sec label="Model">
                       <Chips opts={['gpt-image-2', 'gpt-image-1']} value={settingsOf.model ?? 'gpt-image-2'} onChange={v => setSetting('model', v)} cols={2} />
@@ -2673,7 +2789,7 @@ function StudioCanvas() {
                 <Sec label="Output">
                   <p style={{ fontSize: 10, color: 'var(--studio-text-muted)', lineHeight: 1.6 }}>Generates a 16:9 background plate (single mode) or 21:9 multi-angle composite.</p>
                 </Sec>
-                {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai') && (
+                {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai' && effectiveSidebarProvider !== 'ithink-openai' && effectiveSidebarProvider !== 'grsai') && (
                   <>
                     <Sec label={`Temperature — ${(settingsOf.temperature ?? 0.6).toFixed(1)}`}>
                       <SliderRow value={settingsOf.temperature ?? 0.6} min={0.5} max={0.7} step={0.01} onChange={v => setSetting('temperature', v)} />
@@ -2699,7 +2815,7 @@ function StudioCanvas() {
                     </Sec>
                   </>
                 )}
-                {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai') ? (
+                {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai' || effectiveSidebarProvider === 'ithink-openai' || effectiveSidebarProvider === 'grsai') ? (
                   <>
                     <Sec label="Model">
                       <Chips opts={['gpt-image-2', 'gpt-image-1']} value={settingsOf.model ?? 'gpt-image-2'} onChange={v => setSetting('model', v)} cols={2} />
@@ -2878,7 +2994,17 @@ function StudioCanvas() {
       )}
 
       {/* ── Image preview modal ── */}
-      {modalImageUrl && <ImageModal url={modalImageUrl} onClose={() => setModalImageUrl(null)} />}
+      {modalGallery && (
+        <ImageModal
+          items={modalGallery.items}
+          initialIndex={modalGallery.index}
+          onClose={() => setModalGallery(null)}
+          onIndexChange={(i) => {
+            const cur = modalGallery.items[i];
+            if (cur?.id) setSelectedLibImgId(cur.id);
+          }}
+        />
+      )}
 
       {/* ── Welcome dialog ── */}
       {showWelcome && (
@@ -2908,7 +3034,7 @@ function StudioCanvas() {
 }
 
 // ─── Global (no selection) settings panel ────────────────────────────────────
-function GlobalSettings({ activeProvider }: { activeProvider: 'gemini' | 'ecco' | 'pudding' | 'openai' }) {
+function GlobalSettings({ activeProvider }: { activeProvider: 'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai' }) {
   return (
     <>
       <SideLabel>Global Defaults</SideLabel>
@@ -2924,11 +3050,11 @@ function GlobalSettings({ activeProvider }: { activeProvider: 'gemini' | 'ecco' 
         </ol>
       </Sec>
       <Sec label="Provider">
-        <p style={{ fontSize: 11, color: activeProvider === 'ecco' ? '#A78BFA' : activeProvider === 'pudding' ? '#FB923C' : activeProvider === 'openai' ? '#10B981' : '#0D9488' }}>
-          {activeProvider === 'ecco' ? 'EccoAPI (Nano Banana)' : activeProvider === 'pudding' ? 'PuddingAPI (Gemini-compatible)' : activeProvider === 'openai' ? 'OpenAI (GPT-Image-2)' : 'Google Gemini'}
+        <p style={{ fontSize: 11, color: activeProvider === 'ecco' ? '#A78BFA' : activeProvider === 'pudding' ? '#FB923C' : activeProvider === 'openai' ? '#10B981' : activeProvider === 'pudding-openai' ? '#F59E0B' : activeProvider === 'ithink-openai' ? '#06B6D4' : activeProvider === 'grsai' ? '#8B5CF6' : '#0D9488' }}>
+          {activeProvider === 'ecco' ? 'EccoAPI (Nano Banana)' : activeProvider === 'pudding' ? 'PuddingAPI (Gemini-compatible)' : activeProvider === 'openai' ? 'OpenAI (GPT-Image-2)' : activeProvider === 'pudding-openai' ? 'Pudding (OpenAI proxy)' : activeProvider === 'ithink-openai' ? 'iThink (OpenAI proxy)' : activeProvider === 'grsai' ? 'GrsAI (OpenAI proxy)' : 'Google Gemini'}
         </p>
         <p style={{ fontSize: 9, color: 'var(--studio-text-muted)', marginTop: 3 }}>
-          {activeProvider === 'ecco' ? 'nk_live_... key configured' : activeProvider === 'pudding' ? 'PUDDING_API_KEY configured' : activeProvider === 'openai' ? 'OPENAI_API_KEY configured' : 'GEMINI_API_KEY configured'}
+          {activeProvider === 'ecco' ? 'nk_live_... key configured' : activeProvider === 'pudding' ? 'PUDDING_API_KEY configured' : activeProvider === 'openai' ? 'OPENAI_API_KEY configured' : activeProvider === 'pudding-openai' ? 'PUDDING_API_KEY configured' : activeProvider === 'ithink-openai' ? 'ITHINK_OPENAI_API_KEY configured' : activeProvider === 'grsai' ? 'GRSAI_API_KEY configured' : 'GEMINI_API_KEY configured'}
         </p>
       </Sec>
       <Sec label="Keyboard Shortcuts">
@@ -2977,12 +3103,42 @@ function Chips({ opts, value, onChange, cols = 3 }: { opts: string[]; value: str
 }
 
 // ─── Image preview modal ─────────────────────────────────────────────────────
-function ImageModal({ url, onClose }: { url: string; onClose: () => void }) {
+function ImageModal({
+  items,
+  initialIndex,
+  onClose,
+  onIndexChange,
+}: {
+  items: { url: string; id?: string; name?: string }[];
+  initialIndex: number;
+  onClose: () => void;
+  onIndexChange?: (i: number) => void;
+}) {
+  const [index, setIndex] = useState(initialIndex);
+  const activeThumbRef = useRef<HTMLButtonElement | null>(null);
+
+  const go = useCallback((next: number) => {
+    const i = ((next % items.length) + items.length) % items.length;
+    setIndex(i);
+    onIndexChange?.(i);
+  }, [items.length, onIndexChange]);
+
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft')  go(index - 1);
+      if (e.key === 'ArrowRight') go(index + 1);
+    };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [onClose]);
+  }, [onClose, go, index]);
+
+  useEffect(() => {
+    activeThumbRef.current?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+  }, [index]);
+
+  const cur = items[index];
+  const multi = items.length > 1;
 
   return (
     <div
@@ -2994,31 +3150,104 @@ function ImageModal({ url, onClose }: { url: string; onClose: () => void }) {
         backdropFilter: 'blur(6px)',
       }}
     >
-      <div onClick={e => e.stopPropagation()} style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
-        <img src={url} alt="preview"
-          style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 10, display: 'block', objectFit: 'contain', boxShadow: '0 20px 60px rgba(0,0,0,0.7)' }} />
-        {/* Close */}
-        <button onClick={onClose} style={{
-          position: 'absolute', top: -14, right: -14,
-          width: 30, height: 30, borderRadius: '50%',
-          border: '1px solid var(--studio-border)', background: 'var(--studio-surface)', color: 'var(--studio-text)',
-          cursor: 'pointer', fontSize: 16, fontWeight: 700,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-        }}>×</button>
-        {/* Download from modal */}
-        <a href={url} download={`image-${Date.now()}.png`} onClick={e => e.stopPropagation()}
-          style={{
-            position: 'absolute', bottom: 10, right: 10,
-            padding: '5px 12px', borderRadius: 6, background: '#111113cc',
-            color: 'var(--studio-text-sec)', fontSize: 11, fontWeight: 600, textDecoration: 'none',
-            border: '1px solid var(--studio-border)',
-          }}>
-          ↓ Download
-        </a>
-        <p style={{ position: 'absolute', bottom: 10, left: 10, fontSize: 10, color: 'var(--studio-text-muted)', margin: 0 }}>
-          Click outside or press Esc to close
-        </p>
+      <div onClick={e => e.stopPropagation()} style={{ position: 'relative', maxWidth: '90vw', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+        {/* Main image */}
+        <div style={{ position: 'relative' }}>
+          {multi && (
+            <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 2, background: 'rgba(0,0,0,0.55)', borderRadius: 20, padding: '2px 9px', fontSize: 11, fontWeight: 600, color: '#fff' }}>
+              {index + 1} / {items.length}
+            </div>
+          )}
+          <img
+            src={cur.url}
+            alt="preview"
+            style={{ maxWidth: '90vw', maxHeight: '78vh', borderRadius: 10, display: 'block', objectFit: 'contain', boxShadow: '0 20px 60px rgba(0,0,0,0.7)' }}
+          />
+          {/* Close */}
+          <button onClick={onClose} style={{
+            position: 'absolute', top: -14, right: -14,
+            width: 30, height: 30, borderRadius: '50%',
+            border: '1px solid var(--studio-border)', background: 'var(--studio-surface)', color: 'var(--studio-text)',
+            cursor: 'pointer', fontSize: 16, fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+          }}>×</button>
+          {/* Download */}
+          <a href={cur.url} download={`image-${Date.now()}.png`} onClick={e => e.stopPropagation()}
+            style={{
+              position: 'absolute', bottom: 10, right: 10,
+              padding: '5px 12px', borderRadius: 6, background: '#111113cc',
+              color: 'var(--studio-text-sec)', fontSize: 11, fontWeight: 600, textDecoration: 'none',
+              border: '1px solid var(--studio-border)',
+            }}>
+            ↓ Download
+          </a>
+          <p style={{ position: 'absolute', bottom: 10, left: 10, fontSize: 10, color: 'var(--studio-text-muted)', margin: 0 }}>
+            Click outside or press Esc to close
+          </p>
+          {/* Prev arrow */}
+          {multi && (
+            <button
+              onClick={e => { e.stopPropagation(); go(index - 1); }}
+              style={{
+                position: 'absolute', left: -42, top: '50%', transform: 'translateY(-50%)',
+                width: 34, height: 34, borderRadius: '50%',
+                border: '1px solid var(--studio-border)', background: 'var(--studio-surface)', color: 'var(--studio-text)',
+                cursor: 'pointer', fontSize: 20, fontWeight: 700,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+              }}
+            >‹</button>
+          )}
+          {/* Next arrow */}
+          {multi && (
+            <button
+              onClick={e => { e.stopPropagation(); go(index + 1); }}
+              style={{
+                position: 'absolute', right: -42, top: '50%', transform: 'translateY(-50%)',
+                width: 34, height: 34, borderRadius: '50%',
+                border: '1px solid var(--studio-border)', background: 'var(--studio-surface)', color: 'var(--studio-text)',
+                cursor: 'pointer', fontSize: 20, fontWeight: 700,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+              }}
+            >›</button>
+          )}
+        </div>
+
+        {/* Thumbnail strip */}
+        {multi && (
+          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', maxWidth: '90vw', padding: '4px 4px 6px' }}>
+            {items.map((item, i) => {
+              const active = i === index;
+              return (
+                <button
+                  key={i}
+                  ref={active ? activeThumbRef : null}
+                  onClick={e => { e.stopPropagation(); go(i); }}
+                  style={{
+                    flexShrink: 0,
+                    width: 56, height: 56,
+                    padding: 0, border: `2px solid ${active ? 'var(--studio-accent)' : 'var(--studio-border)'}`,
+                    borderRadius: 6, overflow: 'hidden', cursor: 'pointer',
+                    opacity: active ? 1 : 0.6,
+                    transition: 'border-color 0.12s, opacity 0.12s',
+                    background: 'var(--studio-elevated)',
+                  }}
+                  onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.opacity = '1'; }}
+                  onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.opacity = '0.6'; }}
+                >
+                  <img
+                    src={item.url}
+                    alt=""
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

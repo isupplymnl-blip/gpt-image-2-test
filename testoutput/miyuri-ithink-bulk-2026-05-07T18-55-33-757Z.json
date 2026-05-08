@@ -1,0 +1,134 @@
+{
+  "N": 10,
+  "elapsed_ms": 91275,
+  "successes": 0,
+  "failures": 10,
+  "results": [
+    {
+      "i": 0,
+      "http": 500,
+      "ct": "application/json; charset=utf-8",
+      "elapsed_ms": 79739,
+      "hasUrl": false,
+      "hasB64": false,
+      "errorMsg": "提交中含有违反平台政策的内容，请你立即停止或调整你的提交内容（traceid: d3ef89726e5dad1876df751bee251cb1）",
+      "fullKeys": [
+        "error"
+      ],
+      "rawSnippet": "{\"error\":{\"message\":\"提交中含有违反平台政策的内容，请你立即停止或调整你的提交内容（traceid: d3ef89726e5dad1876df751bee251cb1）\",\"type\":\"new_api_error\",\"param\":\"\",\"code\":\"\\u003cnil\\u003e\"}}"
+    },
+    {
+      "i": 1,
+      "http": 524,
+      "ct": "",
+      "elapsed_ms": 91214,
+      "hasUrl": false,
+      "hasB64": false,
+      "errorMsg": null,
+      "fullKeys": [],
+      "rawSnippet": ""
+    },
+    {
+      "i": 2,
+      "http": 500,
+      "ct": "application/json; charset=utf-8",
+      "elapsed_ms": 35542,
+      "hasUrl": false,
+      "hasB64": false,
+      "errorMsg": "没有按照预期生成图片，请重新调整提示词后重试（traceid: 2afee2f86f5dad1820e3751b11e325d2）",
+      "fullKeys": [
+        "error"
+      ],
+      "rawSnippet": "{\"error\":{\"message\":\"没有按照预期生成图片，请重新调整提示词后重试（traceid: 2afee2f86f5dad1820e3751b11e325d2）\",\"type\":\"new_api_error\",\"param\":\"\",\"code\":\"\\u003cnil\\u003e\"}}"
+    },
+    {
+      "i": 3,
+      "http": 500,
+      "ct": "application/json; charset=utf-8",
+      "elapsed_ms": 28855,
+      "hasUrl": false,
+      "hasB64": false,
+      "errorMsg": "没有按照预期生成图片，请重新调整提示词后重试（traceid: 7cac891d6f5dad1803e1751b894f2c75）",
+      "fullKeys": [
+        "error"
+      ],
+      "rawSnippet": "{\"error\":{\"message\":\"没有按照预期生成图片，请重新调整提示词后重试（traceid: 7cac891d6f5dad1803e1751b894f2c75）\",\"type\":\"new_api_error\",\"param\":\"\",\"code\":\"\\u003cnil\\u003e\"}}"
+    },
+    {
+      "i": 4,
+      "http": 500,
+      "ct": "application/json; charset=utf-8",
+      "elapsed_ms": 28244,
+      "hasUrl": false,
+      "hasB64": false,
+      "errorMsg": "没有按照预期生成图片，请重新调整提示词后重试（traceid: a87f0fbc6e5dad1834e0751b528bca9f）",
+      "fullKeys": [
+        "error"
+      ],
+      "rawSnippet": "{\"error\":{\"message\":\"没有按照预期生成图片，请重新调整提示词后重试（traceid: a87f0fbc6e5dad1834e0751b528bca9f）\",\"type\":\"new_api_error\",\"param\":\"\",\"code\":\"\\u003cnil\\u003e\"}}"
+    },
+    {
+      "i": 5,
+      "http": 500,
+      "ct": "application/json; charset=utf-8",
+      "elapsed_ms": 48551,
+      "hasUrl": false,
+      "hasB64": false,
+      "errorMsg": "没有按照预期生成图片，请重新调整提示词后重试（traceid: 18b358ab715dad182be6751b5c8881f6）",
+      "fullKeys": [
+        "error"
+      ],
+      "rawSnippet": "{\"error\":{\"message\":\"没有按照预期生成图片，请重新调整提示词后重试（traceid: 18b358ab715dad182be6751b5c8881f6）\",\"type\":\"new_api_error\",\"param\":\"\",\"code\":\"\\u003cnil\\u003e\"}}"
+    },
+    {
+      "i": 6,
+      "http": 500,
+      "ct": "application/json; charset=utf-8",
+      "elapsed_ms": 72692,
+      "hasUrl": false,
+      "hasB64": false,
+      "errorMsg": "没有按照预期生成图片，请重新调整提示词后重试（traceid: 8ebd5b11765dad183cf0751bc734f83d）",
+      "fullKeys": [
+        "error"
+      ],
+      "rawSnippet": "{\"error\":{\"message\":\"没有按照预期生成图片，请重新调整提示词后重试（traceid: 8ebd5b11765dad183cf0751bc734f83d）\",\"type\":\"new_api_error\",\"param\":\"\",\"code\":\"\\u003cnil\\u003e\"}}"
+    },
+    {
+      "i": 7,
+      "http": 500,
+      "ct": "application/json; charset=utf-8",
+      "elapsed_ms": 33503,
+      "hasUrl": false,
+      "hasB64": false,
+      "errorMsg": "没有按照预期生成图片，请重新调整提示词后重试（traceid: 61432ed26f5dad18aee2751bf3e8ba4a）",
+      "fullKeys": [
+        "error"
+      ],
+      "rawSnippet": "{\"error\":{\"message\":\"没有按照预期生成图片，请重新调整提示词后重试（traceid: 61432ed26f5dad18aee2751bf3e8ba4a）\",\"type\":\"new_api_error\",\"param\":\"\",\"code\":\"\\u003cnil\\u003e\"}}"
+    },
+    {
+      "i": 8,
+      "http": 524,
+      "ct": "",
+      "elapsed_ms": 91226,
+      "hasUrl": false,
+      "hasB64": false,
+      "errorMsg": null,
+      "fullKeys": [],
+      "rawSnippet": ""
+    },
+    {
+      "i": 9,
+      "http": 500,
+      "ct": "application/json; charset=utf-8",
+      "elapsed_ms": 76625,
+      "hasUrl": false,
+      "hasB64": false,
+      "errorMsg": "提交中含有违反平台政策的内容，请你立即停止或调整你的提交内容（traceid: 808e31786e5dad187bdf751b63785f7d）",
+      "fullKeys": [
+        "error"
+      ],
+      "rawSnippet": "{\"error\":{\"message\":\"提交中含有违反平台政策的内容，请你立即停止或调整你的提交内容（traceid: 808e31786e5dad187bdf751b63785f7d）\",\"type\":\"new_api_error\",\"param\":\"\",\"code\":\"\\u003cnil\\u003e\"}}"
+    }
+  ]
+}

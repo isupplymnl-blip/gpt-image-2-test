@@ -1,0 +1,46 @@
+{
+  "when": "2026-05-07T16:46:23.065Z",
+  "base": "https://grsaiapi.com",
+  "size": "1024x1280",
+  "results": [
+    {
+      "slide": "miyuri1-charmeuse-triangle-set",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 40250,
+      "bytes": 1606702,
+      "file": "miyuri1-charmeuse-triangle-set-2026-05-07T16-42-38-300Z.png"
+    },
+    {
+      "slide": "miyuri2-lace-over-silk-bodysuit",
+      "ok": false,
+      "status": 400,
+      "elapsed_ms": 34353,
+      "error_excerpt": "{\"error\":{\"message\":\"We’re so sorry, but the image we created may violate our guardrails around nudity, sexuality, or erotic content. If you think we got it wrong, please retry or edit your prompt.\"}}"
+    },
+    {
+      "slide": "miyuri3-satin-babydoll-set",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 42875,
+      "bytes": 1686105,
+      "file": "miyuri3-satin-babydoll-set-2026-05-07T16-43-57-448Z.png"
+    },
+    {
+      "slide": "miyuri4-heavy-silk-slip-dress",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 99347,
+      "bytes": 2013884,
+      "file": "miyuri4-heavy-silk-slip-dress-2026-05-07T16-45-38-793Z.png"
+    },
+    {
+      "slide": "miyuri5-velvet-robe-closed",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 40269,
+      "bytes": 1825151,
+      "file": "miyuri5-velvet-robe-closed-2026-05-07T16-46-20-900Z.png"
+    }
+  ]
+}

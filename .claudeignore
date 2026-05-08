@@ -1,0 +1,72 @@
+# ── Dependencies ──────────────────────────────
+node_modules/
+vendor/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# ── Build outputs ─────────────────────────────
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+target/
+*.class
+
+# ── Lock files ────────────────────────────────
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+Gemfile.lock
+Cargo.lock
+poetry.lock
+composer.lock
+bun.lockb
+
+# ── Logs and temp ─────────────────────────────
+*.log
+logs/
+tmp/
+temp/
+.cache/
+.turbo/
+coverage/
+.nyc_output/
+
+# ── Generated / minified ──────────────────────
+*.min.js
+*.min.css
+*.map
+.parcel-cache/
+
+# ── Binary / media ────────────────────────────
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.ico
+*.mp4
+*.mp3
+*.pdf
+*.zip
+*.tar.gz
+*.wasm
+*.exe
+*.dll
+
+# ── Secrets ───────────────────────────────────
+.env
+.env.*
+*.pem
+*.key
+secrets/
+
+# ── IDE / OS ──────────────────────────────────
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

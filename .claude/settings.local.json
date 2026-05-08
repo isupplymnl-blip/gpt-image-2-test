@@ -37,7 +37,9 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(Get-ChildItem -Recurse -Include \"*.tsx\",\"*.ts\" \"C:\\\\Users\\\\miuri\\\\Documents\\\\GitHub\\\\ai studio\\\\gpt-image-2-test\\\\app\")",
       "Bash(Select-String -Pattern \"generate_node|triggerGenerate|automationEnabled\")",
-      "Bash(Select-Object -First 30 Filename, LineNumber, Line)"
+      "Bash(Select-Object -First 30 Filename, LineNumber, Line)",
+      "mcp__plugin_context-mode_context-mode__ctx_batch_execute",
+      "mcp__plugin_context-mode_context-mode__ctx_execute"
     ]
   }
 }

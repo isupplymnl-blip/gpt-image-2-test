@@ -1,0 +1,81 @@
+{
+  "elapsed_ms": 22900,
+  "http": 200,
+  "response": {
+    "ok": true,
+    "cleared": false,
+    "finalImageUrl": null,
+    "winningAttempt": null,
+    "preModerationImageUrl": null,
+    "preModerationSource": null,
+    "attempts": [
+      {
+        "label": "baseline-generations-mod-low",
+        "endpoint": "/v1/images/generations",
+        "httpStatus": 200,
+        "blocked": true,
+        "blockReason": "Your request was rejected by the safety system. If you believe this is an error, contact us at help.openai.com and include the request ID req_8a30c64c0a9946778d87509ade5ad84b. safety_violations=[sexual].",
+        "frameCount": 0,
+        "frames": [],
+        "finalImageUrl": null
+      },
+      {
+        "label": "edits-with-transparent-pixel",
+        "endpoint": "/v1/images/edits",
+        "httpStatus": 200,
+        "blocked": true,
+        "blockReason": "Your request was rejected by the safety system. If you believe this is an error, contact us at help.openai.com and include the request ID req_2ddad35b910f4692b99de575633d09af.",
+        "frameCount": 0,
+        "frames": [],
+        "finalImageUrl": null
+      },
+      {
+        "label": "n4-stochastic",
+        "endpoint": "/v1/images/generations",
+        "httpStatus": 400,
+        "blocked": true,
+        "blockReason": "{\n  \"error\": {\n    \"message\": \"Streaming is only supported with n=1.\",\n    \"type\": \"image_generation_user_error\",\n    \"param\": \"input\",\n    \"code\": \"unsupported_parameter\"\n  }\n}",
+        "frameCount": 0,
+        "frames": [],
+        "finalImageUrl": null
+      },
+      {
+        "label": "sanitized-n4",
+        "endpoint": "/v1/images/generations",
+        "httpStatus": 400,
+        "blocked": true,
+        "blockReason": "{\n  \"error\": {\n    \"message\": \"Streaming is only supported with n=1.\",\n    \"type\": \"image_generation_user_error\",\n    \"param\": \"input\",\n    \"code\": \"unsupported_parameter\"\n  }\n}",
+        "frameCount": 0,
+        "frames": [],
+        "finalImageUrl": null
+      }
+    ],
+    "provider": "openai"
+  },
+  "savedLocally": {
+    "final": null,
+    "preMod": null,
+    "byAttempt": [
+      {
+        "label": "baseline-generations-mod-low",
+        "final": null,
+        "frames": []
+      },
+      {
+        "label": "edits-with-transparent-pixel",
+        "final": null,
+        "frames": []
+      },
+      {
+        "label": "n4-stochastic",
+        "final": null,
+        "frames": []
+      },
+      {
+        "label": "sanitized-n4",
+        "final": null,
+        "frames": []
+      }
+    ]
+  }
+}

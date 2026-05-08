@@ -1,0 +1,62 @@
+{
+  "id": "iw3nesdmmov5tinc",
+  "title": "New conversation",
+  "createdAt": 1778138612904,
+  "updatedAt": 1778138651338,
+  "messages": [
+    {
+      "role": "user",
+      "content": "make me a beach photoshoot"
+    },
+    {
+      "id": "a7vw4ukm7xamov5tnbs",
+      "role": "assistant",
+      "content": "Before we begin, I want to confirm the active provider for this conversation.\n\n**Current provider: Gemini (iSupply AI Studio)**\n\nThis determines how I'll structure prompts and which API parameters I'll use. You can change this anytime using the provider selector in the chat header.\n\nReady to proceed with Gemini (iSupply AI Studio)?",
+      "createdAt": 1778138618968
+    },
+    {
+      "role": "user",
+      "content": "yes"
+    },
+    {
+      "id": "lmiqemuo0npmov5tykj",
+      "role": "assistant",
+      "content": "Let me check the canvas and refs first, then run the gate sequence.",
+      "createdAt": 1778138633539,
+      "toolUses": [
+        {
+          "id": "toolu_bdrk_01HBKQqivecX7PobKqLSuWqx",
+          "name": "list_canvas",
+          "input": {}
+        },
+        {
+          "id": "toolu_bdrk_01KbBgCJs3Qb6GT6tdAa6Gj5",
+          "name": "list_uploaded_refs",
+          "input": {}
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "",
+      "toolResults": [
+        {
+          "tool_use_id": "toolu_bdrk_01HBKQqivecX7PobKqLSuWqx",
+          "content": "{\"success\":true,\"data\":[]}",
+          "is_error": false
+        },
+        {
+          "tool_use_id": "toolu_bdrk_01KbBgCJs3Qb6GT6tdAa6Gj5",
+          "content": "{\"success\":true,\"data\":[]}",
+          "is_error": false
+        }
+      ]
+    },
+    {
+      "id": "fkok44rs93mov5ucay",
+      "role": "assistant",
+      "content": "Canvas is empty, no refs uploaded. Running the gate sequence — one question at a time.\n\n---\n\n**Gate 1 — Brand DNA**\n\nDo you have a brand context file, or want to set one up?\n\n> **A)** Load existing — paste it or point me to the file\n> **B)** Build new — 5-min Q&A with Agent 0\n> **C)** Skip — proceed without brand context\n> **D)** Free type — describe your brand in a few words\n> **E)** Director decides{\n  \"question\": \"Gate 1 — Brand DNA: Do you have a brand context file?\",\n  \"follow_up\": [\n    {\n      \"description\": \"I have a brand-context.md — I'll paste it or point you to it\",\n      \"label\": \"A) Load existing\"\n    },\n    {\n      \"description\": \"Run the 5-minute Brand DNA Q&A with Agent 0 first\",\n      \"label\": \"B) Build new\"\n    },\n    {\n      \"description\": \"Proceed without brand context\",\n      \"label\": \"C) Skip\"\n    },\n    {\n      \"description\": \"Pick the best approach for me based on what you know\",\n      \"label\": \"D) Director decides\"\n    }\n  ]\n}",
+      "createdAt": 1778138651338
+    }
+  ]
+}
