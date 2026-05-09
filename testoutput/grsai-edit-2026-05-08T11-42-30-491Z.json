@@ -1,0 +1,7 @@
+{
+  "stamp": "2026-05-08T11-42-30-491Z",
+  "base": "https://grsaiapi.com",
+  "status": 400,
+  "body": "{\"id\":\"3-9c67d8a5-ccf7-4c43-892f-b15290c523a9\",\"status\":\"failed\",\"error\":\"We’re so sorry, but the image we created may violate our content policies. If you think we got it wrong, please retry or edit your prompt.\"}",
+  "elapsed": 61428
+}

@@ -1,0 +1,15 @@
+{
+  "stamp": "2026-05-08T11-46-41-633Z",
+  "base": "https://grsaiapi.com",
+  "model": "gpt-image-2",
+  "size": "1024x1024",
+  "input": "testoutput/slide3-knit-loungewear-2026-05-07T16-28-57-472Z.png",
+  "elapsed": 55101,
+  "topKeys": [
+    "id",
+    "status",
+    "results"
+  ],
+  "saved": "C:\\Users\\miuri\\Documents\\GitHub\\ai studio\\gpt-image-2-test\\testoutput\\grsai-edit-bathroom-2026-05-08T11-46-41-633Z.png",
+  "url": "https://file5.aitohumanize.com/file/6fc7be12eb864b2085813cb78b324c24.png"
+}

@@ -45,7 +45,7 @@ export interface Chat {
   createdAt: number;
   updatedAt: number;
   automateBatchId?: string;
-  provider?: 'gemini' | 'openai' | 'pudding-openai' | 'ecco' | 'pudding' | 'ithink-openai' | 'grsai';
+  provider?: 'gemini' | 'openai' | 'pudding-openai' | 'ecco' | 'pudding' | 'ithink-openai' | 'grsai' | 'uocode-openai';
 }
 
 const KEY = 'nbs-chats-v1';

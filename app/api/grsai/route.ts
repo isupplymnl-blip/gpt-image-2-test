@@ -23,6 +23,39 @@ function roleLabel(role?: string): string {
   return 'reference image';
 }
 
+/** Log response metadata + headers without dumping multi-MB b64 image data. */
+function logGrsaiResponse(tag: string, response: Response, parsed: unknown, elapsedMs: number) {
+  const headers: Record<string, string> = {};
+  const interestingHeaders = [
+    'x-request-id', 'cf-ray', 'content-type',
+    'x-ratelimit-limit-requests', 'x-ratelimit-remaining-requests',
+    'retry-after',
+  ];
+  for (const h of interestingHeaders) {
+    const v = response.headers.get(h);
+    if (v) headers[h] = v;
+  }
+
+  // Strip data: URLs from any string field in the parsed body before logging.
+  const stripDataUrls = (v: unknown): unknown => {
+    if (typeof v === 'string') {
+      if (v.startsWith('data:image')) return `<data-url ${v.length} chars>`;
+      return v.length > 500 ? `${v.slice(0, 500)}...<truncated ${v.length - 500} chars>` : v;
+    }
+    if (Array.isArray(v)) return v.map(stripDataUrls);
+    if (v && typeof v === 'object') {
+      const out: Record<string, unknown> = {};
+      for (const [k, val] of Object.entries(v as Record<string, unknown>)) out[k] = stripDataUrls(val);
+      return out;
+    }
+    return v;
+  };
+
+  console.log(`[${tag}] ── RESPONSE FROM GRSAI (${response.status} ${response.statusText}, ${elapsedMs}ms) ──`);
+  console.log(`[${tag}] headers:`, JSON.stringify(headers, null, 2));
+  console.log(`[${tag}] body:`, JSON.stringify(stripDataUrls(parsed), null, 2));
+}
+
 function sse(event: string, data: unknown): string {
   return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
 }
@@ -74,6 +107,10 @@ export async function POST(req: NextRequest) {
           referenceImages || referenceUrls || [];
         const refs = rawRefs.map(r => (typeof r === 'string' ? r : r.url));
 
+        console.log('[grsai] received referenceImages:', referenceImages);
+        console.log('[grsai] received referenceUrls:', referenceUrls);
+        console.log('[grsai] merged refs:', refs);
+
         if (!prompt || typeof prompt !== 'string') {
           send('error', { error: 'Prompt is required' });
           controller.close();
@@ -81,13 +118,16 @@ export async function POST(req: NextRequest) {
         }
 
         const apiKey = process.env.GRSAI_API_KEY;
+        console.log('[grsai] env check: GRSAI_API_KEY present=', !!apiKey, 'len=', apiKey?.length ?? 0);
         if (!apiKey) {
+          console.error('[grsai] GRSAI_API_KEY missing — aborting');
           send('error', { error: 'GRSAI_API_KEY not set' });
           controller.close();
           return;
         }
 
         // Convert reference images to base64 data URLs (grsAI images[] is string[])
+        const t0Refs = Date.now();
         const imageRefs: string[] = [];
         for (const url of refs) {
           try {
@@ -96,6 +136,7 @@ export async function POST(req: NextRequest) {
             console.warn('[grsai] Failed to load reference image:', url, err instanceof Error ? err.message : err);
           }
         }
+        console.log(`[grsai] ref loading: ${imageRefs.length}/${refs.length} loaded in ${Date.now() - t0Refs}ms`);
 
         let enrichedPrompt = prompt;
         if (imageRefs.length > 0 && !prompt.includes('Image 1')) {
@@ -120,13 +161,19 @@ export async function POST(req: NextRequest) {
           ...(imageRefs.length > 0 ? { images: imageRefs } : {}),
         };
 
-        console.log(`[grsai] POST ${GRSAI_BASE}/v1/api/generate model=${model} refs=${refs.length} size=${aspectRatio}`);
+        console.log(`[grsai] ── REQUEST TO GRSAI ──`);
+        console.log(`[grsai] endpoint: POST ${GRSAI_BASE}/v1/api/generate`);
+        console.log(`[grsai] model: ${model}`);
+        console.log(`[grsai] aspectRatio: ${aspectRatio}`);
+        console.log(`[grsai] replyType: json`);
+        console.log(`[grsai] parts: [text(${enrichedPrompt.length} chars)${imageRefs.length > 0 ? `, ${imageRefs.length} reference image(s)` : ''}]`);
 
         // Heartbeat while waiting for slow generation (30-60s)
         const heartbeat = setInterval(() => {
           try { controller.enqueue(encoder.encode(': keep-alive\n\n')); } catch { /* closed */ }
         }, 15_000);
 
+        const t0 = Date.now();
         let response: Response;
         try {
           response = await fetch(`${GRSAI_BASE}/v1/api/generate`, {
@@ -138,10 +185,12 @@ export async function POST(req: NextRequest) {
           clearInterval(heartbeat);
         }
 
+        const elapsed = Date.now() - t0;
         const responseText = await response.text();
 
         if (!response.ok) {
-          console.error('[grsai] API error', response.status, responseText);
+          console.error(`[grsai] API error ${response.status} ${response.statusText} (${elapsed}ms)`);
+          console.error(`[grsai] error body:`, responseText.slice(0, 1000));
           if (response.status === 429) {
             const retryAfter = response.headers.get('retry-after');
             send('error', { error: `Rate limit exceeded${retryAfter ? ` — retry after ${retryAfter}s` : ''}` });
@@ -156,20 +205,23 @@ export async function POST(req: NextRequest) {
         try {
           parsed = JSON.parse(responseText) as GrsaiResponse;
         } catch {
+          console.error(`[grsai] non-JSON response (${elapsed}ms):`, responseText.slice(0, 500));
           send('error', { error: `GrsAI returned non-JSON: ${responseText.slice(0, 200)}` });
           controller.close();
           return;
         }
 
-        console.log(`[grsai] response status=${parsed.status} id=${parsed.id}`);
+        logGrsaiResponse('grsai', response, parsed, elapsed);
 
         if (parsed.status === 'violation') {
+          console.warn(`[grsai] content policy violation id=${parsed.id} error=${parsed.error ?? '(none)'}`);
           send('error', { error: 'Content policy violation' });
           controller.close();
           return;
         }
 
         if (parsed.status === 'failed') {
+          console.error(`[grsai] generation failed id=${parsed.id} error=${parsed.error ?? '(none)'}`);
           send('error', { error: parsed.error ?? 'Generation failed' });
           controller.close();
           return;
@@ -177,27 +229,34 @@ export async function POST(req: NextRequest) {
 
         const cdnUrl = parsed.results?.[0]?.url;
         if (!cdnUrl) {
+          console.error(`[grsai] no image URL in response status=${parsed.status} id=${parsed.id}`);
           send('error', { error: `No image URL in GrsAI response (status: ${parsed.status})` });
           controller.close();
           return;
         }
 
         // Download CDN image and save locally
+        console.log(`[grsai] downloading from CDN: ${cdnUrl}`);
+        const t0Dl = Date.now();
         const imgRes = await fetch(cdnUrl);
         if (!imgRes.ok) throw new Error(`Failed to download image from CDN: ${imgRes.status}`);
         const imgBuf = Buffer.from(await imgRes.arrayBuffer());
+        console.log(`[grsai] CDN download: ${imgBuf.length} bytes in ${Date.now() - t0Dl}ms`);
 
         const generatedDir = getGeneratedDir();
         await mkdir(generatedDir, { recursive: true });
         const filename = `grsai-${Date.now()}.png`;
         await writeFile(join(generatedDir, filename), imgBuf);
         const imageUrl = makeGeneratedUrl(filename);
+        console.log(`[grsai] saved → ${filename} (total ${Date.now() - t0}ms end-to-end)`);
 
         send('complete', { imageUrl });
 
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
+        const stack = err instanceof Error ? err.stack : undefined;
         console.error('[grsai] error:', message);
+        if (stack) console.error('[grsai] stack:', stack);
         try {
           controller.enqueue(encoder.encode(sse('error', { error: message })));
         } catch { /* already closed */ }

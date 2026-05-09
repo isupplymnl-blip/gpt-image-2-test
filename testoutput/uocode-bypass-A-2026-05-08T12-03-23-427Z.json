@@ -1,0 +1,115 @@
+{
+  "results": [
+    {
+      "kind": "gen",
+      "t": 45785,
+      "status": 200,
+      "headers": {
+        "cf-ray": "9f88522d1949107d-HKG",
+        "content-type": "application/json"
+      },
+      "body": "{\"created\":1778241807,\"data\":[{\"b64_json\":\"iVBORw0KGgoAAAANSUhEUgAABOYAAATmCAIAAAAKnjl9AABcSmNhQlgAAFxKanVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAXCRqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOmE3MjM1YzdmLWQzNzEtNGU2ZS04ZTI5LTNjNDk2YjFhYWU"
+    },
+    {
+      "kind": "gen",
+      "t": 34391,
+      "status": 200,
+      "headers": {
+        "cf-ray": "9f88522c9edab6a7-HKG",
+        "content-type": "application/json"
+      },
+      "body": "{\"created\":1778241809,\"data\":[{\"b64_json\":\"iVBORw0KGgoAAAANSUhEUgAABOYAAATmCAIAAAAKnjl9AABnL2NhQlgAAGcvanVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAZwlqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOmEyNzg4OTE2LTM2MWYtNDQwOC1hMTc3LTMyZmNhZTljNWE"
+    },
+    {
+      "kind": "gen",
+      "t": 722,
+      "status": 429,
+      "headers": {
+        "cf-ray": "9f88522ccd7504c7-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"code\":\"\",\"message\":\"您已达到总请求数限制：1分钟内最多请求5次，包括失败次数，请检查您的请求是否正确 (request id: 20260508120319962629339ms0rWaE1)\",\"type\":\"new_api_error\"}}"
+    },
+    {
+      "kind": "gen",
+      "t": 30318,
+      "status": 200,
+      "headers": {
+        "cf-ray": "9f88522cadd5dd3e-HKG",
+        "content-type": "application/json"
+      },
+      "body": "{\"created\":1778241807,\"data\":[{\"b64_json\":\"iVBORw0KGgoAAAANSUhEUgAABOYAAATmCAIAAAAKnjl9AABnL2NhQlgAAGcvanVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAZwlqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOjk3NTlhMDZmLWU4OWMtNDMxOS1iYTViLTIyMjdhM2U3MWE"
+    },
+    {
+      "kind": "gen",
+      "t": 744,
+      "status": 429,
+      "headers": {
+        "cf-ray": "9f88522d3dce02ca-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"code\":\"\",\"message\":\"您已达到总请求数限制：1分钟内最多请求5次，包括失败次数，请检查您的请求是否正确 (request id: 2026050812032015711118jaNFqVoc)\",\"type\":\"new_api_error\"}}"
+    },
+    {
+      "kind": "gen",
+      "t": 31702,
+      "status": 200,
+      "headers": {
+        "cf-ray": "9f88522cd8b9e2ee-HKG",
+        "content-type": "application/json"
+      },
+      "body": "{\"created\":1778241808,\"data\":[{\"b64_json\":\"iVBORw0KGgoAAAANSUhEUgAABOYAAATmCAIAAAAKnjl9AABnL2NhQlgAAGcvanVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAZwlqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOjI4Y2MyNmU3LWZlMGMtNGY4OC05MDUyLTMyMTA0NWFiMTc"
+    },
+    {
+      "kind": "gen",
+      "t": 717,
+      "status": 429,
+      "headers": {
+        "cf-ray": "9f88522ceb62050e-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"code\":\"\",\"message\":\"您已达到总请求数限制：1分钟内最多请求5次，包括失败次数，请检查您的请求是否正确 (request id: 20260508120319966251983aWfjAQrP)\",\"type\":\"new_api_error\"}}"
+    },
+    {
+      "kind": "gen",
+      "t": 755,
+      "status": 429,
+      "headers": {
+        "cf-ray": "9f88522d4cb00890-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"code\":\"\",\"message\":\"您已达到总请求数限制：1分钟内最多请求5次，包括失败次数，请检查您的请求是否正确 (request id: 2026050812032028080796TDAlZ1jI)\",\"type\":\"new_api_error\"}}"
+    },
+    {
+      "kind": "gen",
+      "t": 736,
+      "status": 429,
+      "headers": {
+        "cf-ray": "9f88522d2a372105-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"code\":\"\",\"message\":\"您已达到总请求数限制：1分钟内最多请求5次，包括失败次数，请检查您的请求是否正确 (request id: 202605081203206685061XUcGrLDF)\",\"type\":\"new_api_error\"}}"
+    },
+    {
+      "kind": "gen",
+      "t": 32270,
+      "status": 200,
+      "headers": {
+        "cf-ray": "9f88522d5f9c84c3-HKG",
+        "content-type": "application/json"
+      },
+      "body": "{\"created\":1778241812,\"data\":[{\"b64_json\":\"iVBORw0KGgoAAAANSUhEUgAABOYAAATmCAIAAAAKnjl9AABnL2NhQlgAAGcvanVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAZwlqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOjMzMWYxMDBjLWMyYTgtNDA3Zi1iYzEyLTU3YjUzNWVhMDd"
+    }
+  ],
+  "summary": {
+    "name": "A",
+    "counts": {
+      "200": 5,
+      "429": 5
+    },
+    "first429": 2,
+    "ok": 5,
+    "non429": 5,
+    "total": 10
+  }
+}

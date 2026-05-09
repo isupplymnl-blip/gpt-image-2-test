@@ -1,0 +1,106 @@
+{
+  "results": [
+    {
+      "kind": "gen",
+      "t": 831,
+      "status": 429,
+      "headers": {
+        "cf-ray": "9f8858393e5c9fe0-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"code\":\"\",\"message\":\"您已达到总请求数限制：1分钟内最多请求5次，包括失败次数，请检查您的请求是否正确 (request id: 20260508120727781847665T9lujW2k)\",\"type\":\"new_api_error\"}}",
+      "saved": null
+    },
+    {
+      "kind": "gen",
+      "t": 91339,
+      "status": 0,
+      "error": "fetch failed"
+    },
+    {
+      "kind": "gen",
+      "t": 16344,
+      "status": 429,
+      "headers": {
+        "cf-ray": "9f8858392a211075-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"code\":\"\",\"message\":\"您已达到总请求数限制：1分钟内最多请求5次，包括失败次数，请检查您的请求是否正确 (request id: 20260508120727586461801AgWGmCUI)\",\"type\":\"new_api_error\"}}",
+      "saved": null
+    },
+    {
+      "kind": "gen",
+      "t": 91338,
+      "status": 0,
+      "error": "fetch failed"
+    },
+    {
+      "kind": "gen",
+      "t": 16343,
+      "status": 429,
+      "headers": {
+        "cf-ray": "9f8858396bb9109f-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"code\":\"\",\"message\":\"您已达到总请求数限制：1分钟内最多请求5次，包括失败次数，请检查您的请求是否正确 (request id: 20260508120727624954881b8bMkYm2)\",\"type\":\"new_api_error\"}}",
+      "saved": null
+    },
+    {
+      "kind": "gen",
+      "t": 91338,
+      "status": 0,
+      "error": "fetch failed"
+    },
+    {
+      "kind": "gen",
+      "t": 817,
+      "status": 429,
+      "headers": {
+        "cf-ray": "9f8858395e975dfb-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"code\":\"\",\"message\":\"您已达到总请求数限制：1分钟内最多请求5次，包括失败次数，请检查您的请求是否正确 (request id: 20260508120727993701452sA8g9rv8)\",\"type\":\"new_api_error\"}}",
+      "saved": null
+    },
+    {
+      "kind": "gen",
+      "t": 91336,
+      "status": 0,
+      "error": "fetch failed"
+    },
+    {
+      "kind": "gen",
+      "t": 435,
+      "status": 429,
+      "headers": {
+        "cf-ray": "9f8858393af1095c-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"code\":\"\",\"message\":\"您已达到总请求数限制：1分钟内最多请求5次，包括失败次数，请检查您的请求是否正确 (request id: 20260508120727597145597Ytg9k4On)\",\"type\":\"new_api_error\"}}",
+      "saved": null
+    },
+    {
+      "kind": "gen",
+      "t": 9971,
+      "status": 400,
+      "headers": {
+        "cf-ray": "9f885838bf8e983b-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"message\":\"抱歉，我无法生成包含裸体或性暗示内容的图像。你描述的场景属于成人/性化内容类别，这类内容我不能创建。  \\n\\n如果你愿意，我可以帮你：  \\n- 改成**时尚夜间室内奢华摄影**，穿着**优雅睡衣或丝质家居服**，保持**烛光氛围与高端质感**，但不展示裸体或性暗示。  \\n- 生成**商业广告风格肖像**，强调光影、皮肤质感、服装材质和高级摄影感。  \\n\\n你希望我按这个方向生成吗？\",\"type\":\"invalid_request_error\",",
+      "saved": null
+    }
+  ],
+  "summary": {
+    "name": "A",
+    "counts": {
+      "0": 4,
+      "400": 1,
+      "429": 5
+    },
+    "first429": 0,
+    "ok": 0,
+    "non429": 5,
+    "total": 10
+  }
+}

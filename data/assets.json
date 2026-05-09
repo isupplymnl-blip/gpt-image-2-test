@@ -1,5 +1,23 @@
 [
   {
+    "id": "asset-1778238939761-cxd0zulagcp",
+    "name": "452 ws 1024x1024",
+    "url": "/api/uploads/1778238939739-hzgx41qj8t.jpg",
+    "tags": [
+      "setting-plate"
+    ],
+    "createdAt": "2026-05-08T11:15:39.762Z"
+  },
+  {
+    "id": "asset-1778238921931-zfndn072e2c",
+    "name": "452 ws 1024x1024",
+    "url": "/api/uploads/1778238921926-m2qavxi6p4.jpg",
+    "tags": [
+      "model-ref"
+    ],
+    "createdAt": "2026-05-08T11:15:21.932Z"
+  },
+  {
     "id": "asset-1777474951443-65tpijiztb",
     "name": "pudding openai 1777461844136",
     "url": "/api/uploads/1777474951439-b2yn9qzka37.png",

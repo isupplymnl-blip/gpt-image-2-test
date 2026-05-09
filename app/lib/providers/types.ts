@@ -3,7 +3,7 @@
  * Supports both Gemini and OpenAI providers
  */
 
-export type ProviderType = 'gemini' | 'openai' | 'pudding-openai' | 'ecco' | 'pudding' | 'ithink-openai' | 'grsai';
+export type ProviderType = 'gemini' | 'openai' | 'pudding-openai' | 'ecco' | 'pudding' | 'ithink-openai' | 'grsai' | 'uocode-openai';
 
 export interface GeneratedImage {
   url: string;

@@ -123,7 +123,7 @@ export default function ProviderSettingsPanel({ open, onClose }: Props) {
                 marginBottom: 10,
               }}
             >
-              {tempProvider === 'gemini' || tempProvider === 'ecco' || tempProvider === 'pudding' ? '🍌 Nano Banana (Gemini)' : tempProvider === 'pudding-openai' ? '🤖 Pudding (OpenAI)' : tempProvider === 'ithink-openai' ? '🤖 iThink (OpenAI)' : tempProvider === 'grsai' ? '🤖 GrsAI (OpenAI)' : '🤖 GPT-Image-2 (OpenAI)'}
+              {tempProvider === 'gemini' || tempProvider === 'ecco' || tempProvider === 'pudding' ? '🍌 Nano Banana (Gemini)' : tempProvider === 'pudding-openai' ? '🤖 Pudding (OpenAI)' : tempProvider === 'ithink-openai' ? '🤖 iThink (OpenAI)' : tempProvider === 'grsai' ? '🤖 GrsAI (OpenAI)' : tempProvider === 'uocode-openai' ? '🤖 Uocode (OpenAI)' : '🤖 GPT-Image-2 (OpenAI)'}
             </h4>
             {(tempProvider === 'gemini' || tempProvider === 'ecco' || tempProvider === 'pudding') ? (
               <>

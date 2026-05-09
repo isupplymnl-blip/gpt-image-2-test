@@ -1,0 +1,117 @@
+{
+  "results": [
+    {
+      "kind": "gen",
+      "t": 1124,
+      "status": 429,
+      "headers": {
+        "cf-ray": "9f885c0a7d855162-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"code\":\"\",\"message\":\"您已达到总请求数限制：1分钟内最多请求5次，包括失败次数，请检查您的请求是否正确 (request id: 20260508121004652266918fWD1V8bu)\",\"type\":\"new_api_error\"}}",
+      "saved": null
+    },
+    {
+      "kind": "edit",
+      "t": 91369,
+      "status": 0,
+      "error": "fetch failed"
+    },
+    {
+      "kind": "gen",
+      "t": 1174,
+      "status": 429,
+      "headers": {
+        "cf-ray": "9f885c0a98932118-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"code\":\"\",\"message\":\"您已达到总请求数限制：1分钟内最多请求5次，包括失败次数，请检查您的请求是否正确 (request id: 202605081210047065237803exoJRMQ)\",\"type\":\"new_api_error\"}}",
+      "saved": null
+    },
+    {
+      "kind": "edit",
+      "t": 1171,
+      "status": 429,
+      "headers": {
+        "cf-ray": "9f885c0a8fa78622-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"code\":\"\",\"message\":\"您已达到总请求数限制：1分钟内最多请求5次，包括失败次数，请检查您的请求是否正确 (request id: 20260508121004706896219nL6FihCQ)\",\"type\":\"new_api_error\"}}",
+      "saved": null
+    },
+    {
+      "kind": "gen",
+      "t": 6696,
+      "status": 400,
+      "headers": {
+        "cf-ray": "9f885c0a7b4d0f00-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"message\":\"抱歉，我无法生成涉及裸体或高度性化的内容，包括透明睡衣或内衣的图像。  \\n\\n如果你希望，我可以帮你把这个构思调整为**高端时尚夜间室内肖像风格**的摄影效果，但不会涉及裸露或半裸的元素，比如可以改为**优雅丝质睡袍或高级家居服**，保持烛光、氛围、光影和美感。  \\n\\n你希望我帮你调整并生成这个安全版本吗？\",\"type\":\"invalid_request_error\",\"param\":\"\",\"code\":\"content_policy_viola",
+      "saved": null
+    },
+    {
+      "kind": "edit",
+      "t": 1043,
+      "status": 429,
+      "headers": {
+        "cf-ray": "9f885c0a99da1111-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"code\":\"\",\"message\":\"您已达到总请求数限制：1分钟内最多请求5次，包括失败次数，请检查您的请求是否正确 (request id: 20260508121004150344030OHaGj2T5)\",\"type\":\"new_api_error\"}}",
+      "saved": null
+    },
+    {
+      "kind": "gen",
+      "t": 1044,
+      "status": 429,
+      "headers": {
+        "cf-ray": "9f885c0a8d9384b8-HKG",
+        "content-type": "application/json; charset=utf-8"
+      },
+      "body": "{\"error\":{\"code\":\"\",\"message\":\"您已达到总请求数限制：1分钟内最多请求5次，包括失败次数，请检查您的请求是否正确 (request id: 20260508121004105472719yjQnGi8E)\",\"type\":\"new_api_error\"}}",
+      "saved": null
+    },
+    {
+      "kind": "edit",
+      "t": 46546,
+      "status": 200,
+      "headers": {
+        "cf-ray": "9f885c09ac8adda0-HKG",
+        "content-type": "application/json"
+      },
+      "body": "{\"created\":1778242213,\"data\":[{\"b64_json\":\"iVBORw0KGgoAAAANSUhEUgAABOYAAATmCAIAAAAKnjl9AABnL2NhQlgAAGcvanVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAZwlqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOmNiMzU1YjljLTYwMDEtNDg2ZS1iM2Q0LTE0YzQ5NDU2MTd",
+      "saved": "C:\\Users\\miuri\\Documents\\GitHub\\ai studio\\gpt-image-2-test\\testoutput\\uocode-bypass-edit-B-edit4-2026-05-08T12-07-31-338Z.png"
+    },
+    {
+      "kind": "gen",
+      "t": 40394,
+      "status": 200,
+      "headers": {
+        "cf-ray": "9f885c09d813dd4e-HKG",
+        "content-type": "application/json"
+      },
+      "body": "{\"created\":1778242211,\"data\":[{\"b64_json\":\"iVBORw0KGgoAAAANSUhEUgAABOYAAATmCAIAAAAKnjl9AABcSmNhQlgAAFxKanVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAXCRqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOmFiZTk1YzVlLTg2YTktNDk1NC1hOGFmLTU0MWRiMTYzYmQ",
+      "saved": "C:\\Users\\miuri\\Documents\\GitHub\\ai studio\\gpt-image-2-test\\testoutput\\uocode-bypass-gen-B-gen5-2026-05-08T12-07-31-338Z.png"
+    },
+    {
+      "kind": "edit",
+      "t": 91363,
+      "status": 0,
+      "error": "fetch failed"
+    }
+  ],
+  "summary": {
+    "name": "B",
+    "counts": {
+      "0": 2,
+      "200": 2,
+      "400": 1,
+      "429": 5
+    },
+    "first429": 0,
+    "ok": 2,
+    "non429": 5,
+    "total": 10
+  }
+}

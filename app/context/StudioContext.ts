@@ -35,9 +35,9 @@ export interface NodeSettings {
   compositeMode?: 'single' | 'multi-angle';
   compositeAngles?: string[];  // angle labels, length = panel count (2 | 3 | 4)
   // Per-node provider override (overrides the global toolbar selection for this node)
-  providerOverride?: 'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai';
+  providerOverride?: 'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai' | 'uocode-openai';
   // NEW: Provider selection (for GPT-Image-2 integration)
-  provider?: 'gemini' | 'openai' | 'pudding-openai' | 'ecco' | 'pudding' | 'ithink-openai' | 'grsai';
+  provider?: 'gemini' | 'openai' | 'pudding-openai' | 'ecco' | 'pudding' | 'ithink-openai' | 'grsai' | 'uocode-openai';
   // OpenAI-specific settings
   quality?: 'low' | 'medium' | 'high' | 'auto';
   size?: string; // e.g. '1024x1024', 'auto', '3840x2160' — gpt-image-2 supports flexible sizes
@@ -88,7 +88,7 @@ export interface StudioContextType {
   onStartConnect:      (nodeId: string) => void;
   onCompleteConnect:   (targetNodeId: string) => void;
   // Provider
-  activeProvider:      'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai';
+  activeProvider:      'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai' | 'uocode-openai';
 }
 
 export const StudioContext = createContext<StudioContextType>({

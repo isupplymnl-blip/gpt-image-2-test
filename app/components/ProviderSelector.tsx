@@ -21,6 +21,10 @@ export default function ProviderSelector({ value, onChange, disabled, showLabel 
   const providers: Array<{ value: ProviderType; label: string; icon: string }> = [
     { value: 'gemini', label: 'Nano Banana', icon: '🍌' },
     { value: 'openai', label: 'OpenAI Image', icon: '🤖' },
+    { value: 'pudding-openai', label: 'Pudding (OpenAI)', icon: '🤖' },
+    { value: 'ithink-openai', label: 'iThink (OpenAI)', icon: '🤖' },
+    { value: 'grsai', label: 'GrsAI (OpenAI)', icon: '🤖' },
+    { value: 'uocode-openai', label: 'Uocode (OpenAI)', icon: '🤖' },
   ];
 
   const selected = providers.find(p => p.value === value) || providers[0];

@@ -24,6 +24,7 @@ const PROVIDER_LABEL: Record<ProviderType, string> = {
   'pudding-openai': 'Pudding OpenAI proxy',
   'ithink-openai': 'iThink OpenAI proxy',
   grsai: 'GrsAI OpenAI proxy',
+  'uocode-openai': 'Uocode OpenAI proxy',
 };
 
 const OPTIONS: Array<{

@@ -99,10 +99,10 @@ function StudioCanvas() {
   }, [nodes, edges, saveCurrentBatch]);
 
   // ── Provider & credits state ──────────────────────────────────────────────
-  const [activeProvider, setActiveProvider] = useState<'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai'>('gemini');
+  const [activeProvider, setActiveProvider] = useState<'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai' | 'uocode-openai'>('gemini');
   const [eccoCredits, setEccoCredits] = useState<number | null>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const activeProviderRef = useRef<'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai'>('gemini');
+  const activeProviderRef = useRef<'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai' | 'uocode-openai'>('gemini');
   activeProviderRef.current = activeProvider;
   const activeBatchIdRef = useRef(activeBatchId);
   activeBatchIdRef.current = activeBatchId;
@@ -617,6 +617,8 @@ function StudioCanvas() {
       ? '/api/ithink-openai'
       : resolvedProvider === 'grsai'
       ? '/api/grsai'
+      : resolvedProvider === 'uocode-openai'
+      ? '/api/uocode-openai'
       : '/api/generate';
 
     let lastError = '';
@@ -1110,6 +1112,10 @@ function StudioCanvas() {
       await Promise.all(allOutIds.map(outId =>
         callOpenAICompatibleStream('/api/grsai', [outId], { prompt, nodeId: promptNodeId, type: 'slide', settings: settings ?? {}, referenceImages })
       ));
+    } else if (effectiveProvider === 'uocode-openai') {
+      await Promise.all(allOutIds.map(outId =>
+        callOpenAICompatibleStream('/api/uocode-openai', [outId], { prompt, nodeId: promptNodeId, type: 'slide', settings: settings ?? {}, referenceImages })
+      ));
     } else {
       const geminiFn = settings?.useStreaming ? callGeminiGenerateStream : callGenerate;
       await Promise.all(allOutIds.map(outId =>
@@ -1149,6 +1155,8 @@ function StudioCanvas() {
       await callOpenAICompatibleStream('/api/ithink-openai', [outputNodeId], { prompt: lastPrompt, nodeId: outputNodeId, type: 'slide', settings: settings ?? {}, referenceImages });
     } else if (effectiveProvider === 'grsai') {
       await callOpenAICompatibleStream('/api/grsai', [outputNodeId], { prompt: lastPrompt, nodeId: outputNodeId, type: 'slide', settings: settings ?? {}, referenceImages });
+    } else if (effectiveProvider === 'uocode-openai') {
+      await callOpenAICompatibleStream('/api/uocode-openai', [outputNodeId], { prompt: lastPrompt, nodeId: outputNodeId, type: 'slide', settings: settings ?? {}, referenceImages });
     } else {
       const geminiFn = settings?.useStreaming ? callGeminiGenerateStream : callGenerate;
       await geminiFn([outputNodeId], { prompt: lastPrompt, nodeId: outputNodeId, type: 'slide', settings: settings ?? {}, referenceImages });
@@ -1206,6 +1214,8 @@ function StudioCanvas() {
           return callPuddingOpenaiGenerateStream([slide.outputNodeId], { prompt: slide.prompt.trim(), nodeId, type: 'slide', settings: settings ?? {}, referenceUrls });
         } else if (effectiveProvider === 'ithink-openai') {
           return callOpenAICompatibleStream('/api/ithink-openai', [slide.outputNodeId], { prompt: slide.prompt.trim(), nodeId, type: 'slide', settings: settings ?? {}, referenceImages });
+        } else if (effectiveProvider === 'uocode-openai') {
+          return callOpenAICompatibleStream('/api/uocode-openai', [slide.outputNodeId], { prompt: slide.prompt.trim(), nodeId, type: 'slide', settings: settings ?? {}, referenceImages });
         } else {
           return callOpenAICompatibleStream('/api/grsai', [slide.outputNodeId], { prompt: slide.prompt.trim(), nodeId, type: 'slide', settings: settings ?? {}, referenceImages });
         }
@@ -1616,7 +1626,7 @@ function StudioCanvas() {
             )}
             {/* Provider dropdown */}
             {(() => {
-              type ProviderEntry = { value: 'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai'; label: string; short: string; color: string; group: string };
+              type ProviderEntry = { value: 'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai' | 'uocode-openai'; label: string; short: string; color: string; group: string };
               const PROVIDERS: ProviderEntry[] = [
                 { value: 'gemini',  label: 'Gemini (Direct)',  short: 'Gemini',  color: '#0D9488', group: 'Gemini' },
                 { value: 'ecco',    label: 'EccoAPI (Gemini)', short: 'EccoAPI', color: '#A78BFA', group: 'Gemini' },
@@ -1625,6 +1635,7 @@ function StudioCanvas() {
                 { value: 'pudding-openai', label: 'Pudding (OpenAI)', short: 'Pudding-AI', color: '#F59E0B', group: 'OpenAI' },
                 { value: 'ithink-openai',  label: 'iThink (OpenAI)',  short: 'iThink-AI',  color: '#06B6D4', group: 'OpenAI' },
                 { value: 'grsai',          label: 'GrsAI (OpenAI)',   short: 'GrsAI',      color: '#8B5CF6', group: 'OpenAI' },
+                { value: 'uocode-openai',  label: 'Uocode (OpenAI)',  short: 'Uocode-AI',  color: '#EC4899', group: 'OpenAI' },
               ];
               const current = PROVIDERS.find(p => p.value === activeProvider) ?? PROVIDERS[0];
               return (
@@ -2110,7 +2121,7 @@ function StudioCanvas() {
             {!selectedAssetId && !selectedLibImgId && selectedNodeType === 'promptNode' && (
               <>
                 <SideLabel>Image Prompt Settings</SideLabel>
-                {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai' && effectiveSidebarProvider !== 'ithink-openai' && effectiveSidebarProvider !== 'grsai') && <>
+                {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai' && effectiveSidebarProvider !== 'ithink-openai' && effectiveSidebarProvider !== 'grsai' && effectiveSidebarProvider !== 'uocode-openai') && <>
                 <Sec label="⚡ Paste API Config">
                   <textarea
                     rows={4}
@@ -2185,7 +2196,7 @@ function StudioCanvas() {
                     style={{ width: '100%', background: 'var(--studio-elevated)', border: '1px solid var(--studio-border)', borderRadius: 6, padding: '5px 8px', color: 'var(--studio-text)', fontSize: 11, outline: 'none', resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit', lineHeight: 1.5 }} />
                 </Sec>
                 </>}
-                {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai' || effectiveSidebarProvider === 'ithink-openai' || effectiveSidebarProvider === 'grsai') ? (
+                {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai' || effectiveSidebarProvider === 'ithink-openai' || effectiveSidebarProvider === 'grsai' || effectiveSidebarProvider === 'uocode-openai') ? (
                   <>
                     <Sec label="Model">
                       <Chips opts={['gpt-image-2', 'gpt-image-1']} value={settingsOf.model ?? 'gpt-image-2'} onChange={v => setSetting('model', v)} cols={2} />
@@ -2365,7 +2376,7 @@ function StudioCanvas() {
                     <p style={{ fontSize: 11, color: 'var(--studio-text-sec)' }}>{slides.length} slides · {slides.filter(s => s.prompt.trim()).length} filled</p>
                     <p style={{ fontSize: 10, color: 'var(--studio-text-muted)', marginTop: 4, lineHeight: 1.5 }}>Settings below apply to all slides in this carousel.</p>
                   </Sec>
-                  {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai' && effectiveSidebarProvider !== 'ithink-openai' && effectiveSidebarProvider !== 'grsai') && <>
+                  {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai' && effectiveSidebarProvider !== 'ithink-openai' && effectiveSidebarProvider !== 'grsai' && effectiveSidebarProvider !== 'uocode-openai') && <>
                   <Sec label="⚡ Paste API Config">
                     <textarea
                       rows={4}
@@ -2439,7 +2450,7 @@ function StudioCanvas() {
                       style={{ width: '100%', background: 'var(--studio-elevated)', border: '1px solid var(--studio-border)', borderRadius: 6, padding: '5px 8px', color: 'var(--studio-text)', fontSize: 11, outline: 'none', resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit', lineHeight: 1.5 }} />
                   </Sec>
                   </>}
-                  {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai' || effectiveSidebarProvider === 'ithink-openai' || effectiveSidebarProvider === 'grsai') ? (
+                  {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai' || effectiveSidebarProvider === 'ithink-openai' || effectiveSidebarProvider === 'grsai' || effectiveSidebarProvider === 'uocode-openai') ? (
                     <>
                       <Sec label="Model">
                         <Chips opts={['gpt-image-2', 'gpt-image-1']} value={settingsOf.model ?? 'gpt-image-2'} onChange={v => setSetting('model', v)} cols={2} />
@@ -2607,7 +2618,7 @@ function StudioCanvas() {
                 <Sec label="Output">
                   <p style={{ fontSize: 10, color: 'var(--studio-text-muted)', lineHeight: 1.6 }}>Generates a full-profile portrait — one model in 16:9, two or three models together in 21:9. No angle panels, just complete head-to-toe shots.</p>
                 </Sec>
-                {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai' && effectiveSidebarProvider !== 'ithink-openai' && effectiveSidebarProvider !== 'grsai') && <>
+                {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai' && effectiveSidebarProvider !== 'ithink-openai' && effectiveSidebarProvider !== 'grsai' && effectiveSidebarProvider !== 'uocode-openai') && <>
                 <Sec label={`Temperature — ${(settingsOf.temperature ?? 1.0).toFixed(1)}`}>
                   <SliderRow value={settingsOf.temperature ?? 1.0} min={0} max={2} step={0.05} onChange={v => setSetting('temperature', v)} />
                   <p style={{ fontSize: 9, color: 'var(--studio-text-muted)', marginTop: 4 }}>Google recommends 1.0 for image models</p>
@@ -2641,7 +2652,7 @@ function StudioCanvas() {
                   <p style={{ fontSize: 9, color: 'var(--studio-text-muted)', marginTop: 4 }}>High = more input tokens for reference image details</p>
                 </Sec>
                 </>}
-                {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai' || effectiveSidebarProvider === 'ithink-openai' || effectiveSidebarProvider === 'grsai') ? (
+                {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai' || effectiveSidebarProvider === 'ithink-openai' || effectiveSidebarProvider === 'grsai' || effectiveSidebarProvider === 'uocode-openai') ? (
                   <>
                     <Sec label="Model">
                       <Chips opts={['gpt-image-2', 'gpt-image-1']} value={settingsOf.model ?? 'gpt-image-2'} onChange={v => setSetting('model', v)} cols={2} />
@@ -2789,7 +2800,7 @@ function StudioCanvas() {
                 <Sec label="Output">
                   <p style={{ fontSize: 10, color: 'var(--studio-text-muted)', lineHeight: 1.6 }}>Generates a 16:9 background plate (single mode) or 21:9 multi-angle composite.</p>
                 </Sec>
-                {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai' && effectiveSidebarProvider !== 'ithink-openai' && effectiveSidebarProvider !== 'grsai') && (
+                {(effectiveSidebarProvider !== 'openai' && effectiveSidebarProvider !== 'pudding-openai' && effectiveSidebarProvider !== 'ithink-openai' && effectiveSidebarProvider !== 'grsai' && effectiveSidebarProvider !== 'uocode-openai') && (
                   <>
                     <Sec label={`Temperature — ${(settingsOf.temperature ?? 0.6).toFixed(1)}`}>
                       <SliderRow value={settingsOf.temperature ?? 0.6} min={0.5} max={0.7} step={0.01} onChange={v => setSetting('temperature', v)} />
@@ -2815,7 +2826,7 @@ function StudioCanvas() {
                     </Sec>
                   </>
                 )}
-                {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai' || effectiveSidebarProvider === 'ithink-openai' || effectiveSidebarProvider === 'grsai') ? (
+                {(effectiveSidebarProvider === 'openai' || effectiveSidebarProvider === 'pudding-openai' || effectiveSidebarProvider === 'ithink-openai' || effectiveSidebarProvider === 'grsai' || effectiveSidebarProvider === 'uocode-openai') ? (
                   <>
                     <Sec label="Model">
                       <Chips opts={['gpt-image-2', 'gpt-image-1']} value={settingsOf.model ?? 'gpt-image-2'} onChange={v => setSetting('model', v)} cols={2} />
@@ -3034,7 +3045,7 @@ function StudioCanvas() {
 }
 
 // ─── Global (no selection) settings panel ────────────────────────────────────
-function GlobalSettings({ activeProvider }: { activeProvider: 'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai' }) {
+function GlobalSettings({ activeProvider }: { activeProvider: 'gemini' | 'ecco' | 'pudding' | 'openai' | 'pudding-openai' | 'ithink-openai' | 'grsai' | 'uocode-openai' }) {
   return (
     <>
       <SideLabel>Global Defaults</SideLabel>
@@ -3050,11 +3061,11 @@ function GlobalSettings({ activeProvider }: { activeProvider: 'gemini' | 'ecco' 
         </ol>
       </Sec>
       <Sec label="Provider">
-        <p style={{ fontSize: 11, color: activeProvider === 'ecco' ? '#A78BFA' : activeProvider === 'pudding' ? '#FB923C' : activeProvider === 'openai' ? '#10B981' : activeProvider === 'pudding-openai' ? '#F59E0B' : activeProvider === 'ithink-openai' ? '#06B6D4' : activeProvider === 'grsai' ? '#8B5CF6' : '#0D9488' }}>
-          {activeProvider === 'ecco' ? 'EccoAPI (Nano Banana)' : activeProvider === 'pudding' ? 'PuddingAPI (Gemini-compatible)' : activeProvider === 'openai' ? 'OpenAI (GPT-Image-2)' : activeProvider === 'pudding-openai' ? 'Pudding (OpenAI proxy)' : activeProvider === 'ithink-openai' ? 'iThink (OpenAI proxy)' : activeProvider === 'grsai' ? 'GrsAI (OpenAI proxy)' : 'Google Gemini'}
+        <p style={{ fontSize: 11, color: activeProvider === 'ecco' ? '#A78BFA' : activeProvider === 'pudding' ? '#FB923C' : activeProvider === 'openai' ? '#10B981' : activeProvider === 'pudding-openai' ? '#F59E0B' : activeProvider === 'ithink-openai' ? '#06B6D4' : activeProvider === 'grsai' ? '#8B5CF6' : activeProvider === 'uocode-openai' ? '#EC4899' : '#0D9488' }}>
+          {activeProvider === 'ecco' ? 'EccoAPI (Nano Banana)' : activeProvider === 'pudding' ? 'PuddingAPI (Gemini-compatible)' : activeProvider === 'openai' ? 'OpenAI (GPT-Image-2)' : activeProvider === 'pudding-openai' ? 'Pudding (OpenAI proxy)' : activeProvider === 'ithink-openai' ? 'iThink (OpenAI proxy)' : activeProvider === 'grsai' ? 'GrsAI (OpenAI proxy)' : activeProvider === 'uocode-openai' ? 'Uocode (OpenAI proxy)' : 'Google Gemini'}
         </p>
         <p style={{ fontSize: 9, color: 'var(--studio-text-muted)', marginTop: 3 }}>
-          {activeProvider === 'ecco' ? 'nk_live_... key configured' : activeProvider === 'pudding' ? 'PUDDING_API_KEY configured' : activeProvider === 'openai' ? 'OPENAI_API_KEY configured' : activeProvider === 'pudding-openai' ? 'PUDDING_API_KEY configured' : activeProvider === 'ithink-openai' ? 'ITHINK_OPENAI_API_KEY configured' : activeProvider === 'grsai' ? 'GRSAI_API_KEY configured' : 'GEMINI_API_KEY configured'}
+          {activeProvider === 'ecco' ? 'nk_live_... key configured' : activeProvider === 'pudding' ? 'PUDDING_API_KEY configured' : activeProvider === 'openai' ? 'OPENAI_API_KEY configured' : activeProvider === 'pudding-openai' ? 'PUDDING_API_KEY configured' : activeProvider === 'ithink-openai' ? 'ITHINK_OPENAI_API_KEY configured' : activeProvider === 'grsai' ? 'GRSAI_API_KEY configured' : activeProvider === 'uocode-openai' ? 'UOCODE_API_KEY configured' : 'GEMINI_API_KEY configured'}
         </p>
       </Sec>
       <Sec label="Keyboard Shortcuts">
