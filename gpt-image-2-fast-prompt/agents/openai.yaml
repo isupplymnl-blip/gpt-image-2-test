@@ -1,0 +1,4 @@
+interface:
+  display_name: "GPT Image 2 Fast Prompt"
+  short_description: "Create concise, reference-faithful GPT Image 2 prompts"
+  default_prompt: "Use $gpt-image-2-fast-prompt to create one accurate text prompt from the supplied reference image."

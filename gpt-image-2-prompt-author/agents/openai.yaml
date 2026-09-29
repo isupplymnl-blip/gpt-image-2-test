@@ -1,0 +1,6 @@
+interface:
+  display_name: "GPT Image 2 Prompt Author"
+  short_description: "Write and lint reference-faithful GPT Image 2 prompts"
+  default_prompt: "Use $gpt-image-2-prompt-author to create a production-ready prompt that treats attached identity references as visual sources of truth without re-describing them. Do not generate an image."
+policy:
+  allow_implicit_invocation: false

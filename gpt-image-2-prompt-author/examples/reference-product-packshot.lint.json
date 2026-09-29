@@ -1,0 +1,11 @@
+{
+  "lintOnly": true,
+  "assetId": "reference-product-packshot",
+  "operation": "reference-generate",
+  "aspectRatio": "4:5",
+  "mappedDimensions": "1024x1280",
+  "images": [
+    "local/reference-product.png"
+  ],
+  "prompt": "Scene/background: Create a front-facing 4:5 product advertisement on a seamless warm-gray studio background. Place the product slightly left of center and reserve the upper-right 20% as negative space. Preserve the supplied product lighting, exposure, white balance, reflections, and internal shading; add only a soft external grounding shadow. Image 1: product reference. Keep the complete supplied product as is. Only remove its original background, resize it uniformly, place it in the hero position, and add the external grounding shadow. Do not change the product itself.\nSubject: Use the complete product from Image 1 without recreating or reinterpreting its appearance. Keep its supplied view and angle, show it fully in frame at realistic scale, and place it slightly left of center.\nKey details: Keep the product as the sole hero. Use restrained negative space, a subtle studio surface transition, a soft contact shadow, sharp overall focus, and no secondary props or competing elements. Leave the upper-right 20% clear for a later overlay.\nTypography: none; reserve the upper-right 20% for a later overlay. Render no captions, badges, watermarks, new logos, or altered product text.\nConstraints: Image 1 is the source of truth for product appearance. Change only background removal, uniform scale, placement, and the external shadow. Add no extra products, props, or text."
+}
